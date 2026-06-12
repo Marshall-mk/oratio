@@ -4,7 +4,7 @@ from fastapi import FastAPI
 
 from app.config import get_settings
 from app.db import dispose_engine, init_engine
-from app.routers import challenges, live, profiles, sessions
+from app.routers import challenges, live, profiles, progress, sessions
 
 
 @asynccontextmanager
@@ -19,6 +19,7 @@ app = FastAPI(title="Veritas API", version="0.1.0", lifespan=lifespan)
 app.include_router(profiles.router)
 app.include_router(challenges.router)
 app.include_router(sessions.router)
+app.include_router(progress.router)
 app.include_router(live.router)
 
 

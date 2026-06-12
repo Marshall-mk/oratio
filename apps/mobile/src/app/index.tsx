@@ -34,9 +34,14 @@ export default function Home() {
           </Text>
           <Text style={styles.sub}>What are we training today?</Text>
         </View>
-        <Pressable onPress={() => supabase.auth.signOut()}>
-          <Text style={styles.signOut}>Sign out</Text>
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable onPress={() => router.push('/progress')}>
+            <Text style={styles.headerLink}>Progress</Text>
+          </Pressable>
+          <Pressable onPress={() => supabase.auth.signOut()}>
+            <Text style={styles.signOut}>Sign out</Text>
+          </Pressable>
+        </View>
       </View>
 
       {isLoading && <Text style={styles.sub}>Loading challenges…</Text>}
@@ -77,6 +82,8 @@ const styles = StyleSheet.create({
   },
   greeting: { fontSize: 26, fontWeight: '800', color: colors.text },
   sub: { fontSize: 15, color: colors.textDim, marginTop: 2 },
+  headerActions: { alignItems: 'flex-end', gap: 6 },
+  headerLink: { color: colors.accent, fontSize: 14, fontWeight: '700' },
   signOut: { color: colors.textDim, fontSize: 13 },
   section: { marginTop: spacing.md, gap: spacing.sm },
   sectionTitle: { fontSize: 19, fontWeight: '700', color: colors.text },

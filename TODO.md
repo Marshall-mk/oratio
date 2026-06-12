@@ -52,10 +52,10 @@ Legend: ✅ done · 🚧 in progress · ⬜ not started · 🙋 needs user actio
 - ⬜ On-device visual verification (needs dev build)
 
 ## M5 — Progress Dashboard + Polish
-- ⬜ `GET /me/progress` aggregates
-- ⬜ Charts: stage trendlines, dimension radar, attempt history
-- ⬜ Full challenge library seeded + categorized home screen
-- ⬜ PostHog events (🙋 PostHog project + keys)
+- ✅ `GET /me/progress`: per-stage score series, averages, deltas, Communication IQ (0-100), totals, recent attempts — verified with real data
+- ✅ Progress screen: IQ/attempts/minutes stat cards, per-stage sparkline trendlines with deltas, recent-attempt list → results
+- ✅ Challenge library seeded (32) + categorized home (done in M0/M1)
+- ⬜ PostHog events (🙋 needs PostHog project + keys)
 
 ## M6 — Hardening
 - ⬜ Error states, WS reconnect, evaluation retry button
