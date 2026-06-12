@@ -28,25 +28,28 @@ Legend: ✅ done · 🚧 in progress · ⬜ not started · 🙋 needs user actio
 - ⬜ Manual walkthrough on device: sign up → onboard → browse challenges (recommended user smoke test)
 
 ## M2 — Recording + Live Transcript (riskiest)
-- ⬜ Spike: Python script streams WAV → Gemini Live → prints input transcriptions (validates model + silent-listener behavior)
-- ⬜ Dev build with `@siteed/expo-audio-studio`
-- ⬜ FastAPI WebSocket proxy `/ws/live-session` → Gemini Live
-- ⬜ Session screen: mic level, timer, live captions, pause/stop
-- ⬜ WAV saved locally + uploaded to Supabase Storage
-- ⬜ Transcript persisted (segments + full text)
-- ⬜ Fallback path: record-then-upload batch transcription
+- ✅ Spike: 28.6s WAV streamed → Gemini Live → full real-time transcript, near-zero model chatter (silent-listener pattern VALIDATED)
+- ✅ FastAPI WebSocket proxy `/ws/live-session` → Gemini Live (binary + base64 frames, adaptive transcript drain) — e2e tested
+- ✅ Session screen: timer, live captions, stop, auto-stop at time limit, fallback banner
+- ✅ Transcript persisted (segments + full text) — verified in DB
+- ✅ Fallback path: `/attempts/{id}/transcribe-fallback` (storage download → Gemini batch transcription)
+- ✅ WAV upload helper (Supabase Storage, owner-scoped path) + signed-URL playback helper
+- 🚧 Dev build with `@siteed/audio-studio` (code + config plugin done; build blocked: Xcode 26.3 needs iOS 26 simulator runtime — downloading ~8GB)
+- ⬜ On-device verification: speak → live captions → WAV upload → results (needs dev build; also test airplane-mode fallback)
 
 ## M3 — Evaluation Pipeline
-- ⬜ `evaluator.py`: transcript → Gemini 2.5 Pro structured output (Thought/Structure/Delivery + report)
-- ⬜ Rubric prompts + per-challenge-type addenda
-- ⬜ Scores + feedback_reports persisted; attempt status polling
-- ⬜ Golden-transcript pytest fixtures (strong vs rambling)
+- ✅ `evaluator.py`: transcript → Gemini structured output (Thought/Structure/Delivery, 19 dimension subscores, report, detections) — e2e verified in ~18s
+- ✅ Rubric prompt + framework addenda (PREP/STAR/scientific/story/pyramid) + user-profile personalization
+- ✅ Scores + feedback_reports persisted; attempt status polling (`evaluating → complete|failed`)
+- ✅ Golden-transcript pytest fixtures (strong vs rambling); offline tests pass, live ranking test opt-in via `RUN_LIVE_EVAL=1`
+- ⚠️ Eval model is `gemini-2.5-flash` for now — free-tier key has **zero `gemini-2.5-pro` quota**; flip `GEMINI_EVAL_MODEL` once billing is enabled (🙋)
 
 ## M4 — Feedback UI + Retry/Compare
-- ⬜ Results screen (triple-score cards, dimension breakdown, diagnosis, best/worst sentence, rewrite)
-- ⬜ Audio playback (signed URL)
-- ⬜ Retry → attempt #2 in same session
-- ⬜ Compare view (per-stage deltas)
+- ✅ Results screen: overall score, diagnosis card, detection pills, expandable triple-score cards w/ dimension bars + rationales, strengths/weaknesses, best/worst sentence, rewrite, retry CTA
+- ✅ Audio playback (signed URL + expo-audio)
+- ✅ Retry → attempt #2 in same session — e2e verified
+- ✅ Compare: per-stage deltas vs previous attempt (▲/▼ on score cards) — `previous_scores` e2e verified
+- ⬜ On-device visual verification (needs dev build)
 
 ## M5 — Progress Dashboard + Polish
 - ⬜ `GET /me/progress` aggregates
@@ -59,8 +62,47 @@ Legend: ✅ done · 🚧 in progress · ⬜ not started · 🙋 needs user actio
 - ⬜ EAS build profiles (TestFlight / internal track)
 - ⬜ Google + Apple sign-in (needs OAuth client setup)
 
-## Deferred (post-MVP, from PRD)
-- Phase 0A Research Communication Trainer · Phase 3 Communication Gym modes · Phase 4 Vocabulary Academy · Phase 5 Reading Comprehension Lab · Phase 6 Social Intelligence Trainer · Phase 7 Personal Communication Model (pgvector memory) · Phase 9 Live Coach · Phase 10 Replay · Phase 11 Audience Switching · Phase 12 Thesis Defense Simulator · Phase 13 Thought Mapper
+---
+
+# Post-MVP roadmap: PRD Phases 3–9 consolidated into 4 milestones
+
+> Rationale: phases are grouped by **shared infrastructure**, not PRD numbering.
+> 3+6 share the training loop; 4+5 share a text-exercise engine; 7+8 are the
+> data layer + its dashboard; 9 reuses 2's streaming + 9's metrics in real time.
+
+## M7 — Scenario Gym (= PRD Phase 3 Communication Gym + Phase 6 Social Intelligence)
+*Insight: Phase 3 is mostly new CONTENT for the existing loop; Phase 6 is the same loop with an AI interlocutor + social scoring.*
+- ⬜ Challenge `mode` field: `monologue` (current) | `roleplay` (AI persona responds)
+- ⬜ ~40 new challenges across Phase 3 modes (debate, teaching, leadership, networking, interview, conflict, sales, persuasion) × 4 difficulty tiers
+- ⬜ Roleplay engine: same Gemini Live WS pipeline, silent-listener instruction replaced by persona instruction; model audio streamed back to phone
+- ⬜ Social scenarios (difficult friend, negotiation, workplace conflict, supervisor conversation) as roleplay challenges
+- ⬜ 4th evaluation stage `social` (empathy, listening, validation, curiosity, conflict management) — only scored for roleplay attempts (scores table already takes a stage discriminator)
+
+## M8 — Text Lab (= PRD Phase 4 Vocabulary Academy + Phase 5 Reading Comprehension)
+*Insight: both are text-in/text-out exercise engines — no voice pipeline involved.*
+- ⬜ Shared exercise engine: source text → Gemini generates exercises → user answers → structured scoring
+- ⬜ Reading side: PDF/article upload → summary, definitions, key ideas, argument map → quiz → comprehension score
+- ⬜ Vocabulary side: word/sentence upgrade drills, academic/professional/persuasive rewrites, simplification
+- ⬜ Vocabulary tracking from BOTH labs and speech transcripts: range, unique words, overused words
+- ⬜ New score stages: `comprehension`, `vocabulary`
+
+## M9 — Personal Model + Analytics (= PRD Phase 7 Communication Twin + Phase 8 Analytics)
+*Insight: Phase 7 is the data layer, Phase 8 is its dashboard — one milestone, two surfaces.*
+- ⬜ Per-attempt computed metrics: WPM, filler words, unique vocabulary, avg sentence length, pause distribution (from live transcript segment timings), question/story/example usage
+- ⬜ Detection flags in the evaluator output: rambling, jargon, tangents, weak arguments, circular logic, overexplaining
+- ⬜ pgvector memory: embed attempt summaries + recurring topics → injected into evaluation prompts for personalized feedback ("you've been rambling less than last week")
+- ⬜ Communication IQ: weighted composite of all stage scores, Day 1 vs 30 vs 90
+- ⬜ Analytics dashboard: trendlines per stage, dimension radar, advanced metrics, weekly/monthly growth
+
+## M10 — Live Coach (= PRD Phase 9)
+*Builds directly on M2 streaming + M9 metrics, computed in real time.*
+- ⬜ Real-time detectors over the live transcript stream: speaking too fast (WPM window), filler words, jargon, rambling (sentence-length drift)
+- ⬜ Intervention nudges pushed over the existing WS (slow down / clarify / give an example / summarize)
+- ⬜ Live meters UI: confidence, clarity, pacing
+- ⬜ Modes: presentation, interview, meeting, research defense
+
+## Deferred (deprioritized per user, June 12 2026)
+- Phase 0A Research Communication Trainer · Phase 10 Replay · Phase 11 Audience Switching · Phase 12 Thesis Defense Simulator · Phase 13 Thought Mapper
 - Gamification (XP, streaks UI, ranks) — schema stubs exist
 - Payments (RevenueCat/Stripe)
 - Video/body-language analysis (future roadmap)

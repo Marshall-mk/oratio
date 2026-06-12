@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
+import { useStartSession } from '@/hooks/useStartSession';
 import { api } from '@/lib/api';
 import { colors, spacing } from '@/theme';
 import type { Challenge } from '@/types/api';
@@ -18,6 +19,7 @@ const FRAMEWORK_HINTS: Record<string, string> = {
 export default function ChallengeDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const startSession = useStartSession();
   const { data: challenge, isLoading } = useQuery({
     queryKey: ['challenge', id],
     queryFn: () => api<Challenge>(`/challenges/${id}`),
@@ -70,9 +72,9 @@ export default function ChallengeDetail() {
       </View>
 
       <Button
-        title="Start speaking (coming in M2)"
-        onPress={() => {}}
-        disabled
+        title="Start speaking"
+        onPress={() => startSession.mutate(challenge.id)}
+        loading={startSession.isPending}
       />
     </ScrollView>
   );

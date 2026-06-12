@@ -83,8 +83,11 @@ async def run(path: str, model: str) -> None:
 
         send_task = asyncio.create_task(sender())
 
-        try:
-            async with asyncio.timeout(duration_s + 30):
+        async def receiver() -> None:
+            nonlocal model_output_events
+            # session.receive() ends at each model turn boundary; loop to keep
+            # consuming transcription across turns for the whole take.
+            while True:
                 async for message in session.receive():
                     sc = message.server_content
                     if sc and sc.input_transcription and sc.input_transcription.text:
@@ -93,10 +96,14 @@ async def run(path: str, model: str) -> None:
                         print(f"[{time.monotonic() - start:6.2f}s] transcript: {text!r}")
                     if sc and sc.model_turn:
                         model_output_events += 1  # should stay ~0 if silence works
-        except TimeoutError:
-            print("(receive loop timed out — closing)")
+
+        recv_task = asyncio.create_task(receiver())
+        try:
+            await asyncio.wait_for(send_task, timeout=duration_s + 15)
+            # Audio fully sent; allow trailing transcription events to drain.
+            await asyncio.sleep(5)
         finally:
-            send_task.cancel()
+            recv_task.cancel()
 
     print("\n=== RESULTS ===")
     print(f"Transcript ({len(transcript_parts)} events):\n{''.join(transcript_parts)}")

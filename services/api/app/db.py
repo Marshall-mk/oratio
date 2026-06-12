@@ -33,6 +33,13 @@ async def dispose_engine() -> None:
     _session_factory = None
 
 
+def get_session_factory() -> async_sessionmaker[AsyncSession]:
+    """For non-request contexts (WebSockets, background tasks)."""
+    if _session_factory is None:
+        raise RuntimeError("Database is not configured (DATABASE_URL missing)")
+    return _session_factory
+
+
 async def get_db() -> AsyncIterator[AsyncSession]:
     if _session_factory is None:
         raise RuntimeError("Database is not configured (DATABASE_URL missing)")
