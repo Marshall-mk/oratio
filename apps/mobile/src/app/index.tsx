@@ -1,18 +1,97 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+
+import { useProfile } from '@/hooks/useProfile';
+import { api } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
+import { colors, spacing } from '@/theme';
+import type { Challenge } from '@/types/api';
+
+const CATEGORY_META: Record<Challenge['category'], { label: string; blurb: string }> = {
+  thought: { label: 'Thought Gym', blurb: 'Sharpen reasoning and idea generation' },
+  structure: { label: 'Structure Gym', blurb: 'Organize ideas with proven frameworks' },
+  speaking: { label: 'Speaking Gym', blurb: 'Deliver with clarity and confidence' },
+};
 
 export default function Home() {
+  const router = useRouter();
+  const { data: profile } = useProfile();
+  const { data: challenges, isLoading } = useQuery({
+    queryKey: ['challenges'],
+    queryFn: () => api<Challenge[]>('/challenges'),
+  });
+
+  const byCategory = (cat: Challenge['category']) =>
+    (challenges ?? []).filter((c) => c.category === cat);
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Veritas</Text>
-      <Text style={styles.subtitle}>Your communication gym.</Text>
-      <Text style={styles.meta}>M0 scaffold — auth & onboarding land in M1.</Text>
-    </View>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.greeting}>
+            {profile?.display_name ? `Hey, ${profile.display_name}` : 'Welcome'}
+          </Text>
+          <Text style={styles.sub}>What are we training today?</Text>
+        </View>
+        <Pressable onPress={() => supabase.auth.signOut()}>
+          <Text style={styles.signOut}>Sign out</Text>
+        </Pressable>
+      </View>
+
+      {isLoading && <Text style={styles.sub}>Loading challenges…</Text>}
+
+      {(['thought', 'structure', 'speaking'] as const).map((cat) => (
+        <View key={cat} style={styles.section}>
+          <Text style={styles.sectionTitle}>{CATEGORY_META[cat].label}</Text>
+          <Text style={styles.sectionBlurb}>{CATEGORY_META[cat].blurb}</Text>
+          {byCategory(cat).map((c) => (
+            <Pressable
+              key={c.id}
+              style={({ pressed }) => [styles.card, pressed && { opacity: 0.8 }]}
+              onPress={() => router.push(`/challenge/${c.id}`)}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cardTitle}>{c.title}</Text>
+                <Text style={styles.cardMeta}>
+                  {c.difficulty} · {Math.round(c.max_speak_seconds / 60) || 1} min
+                  {c.framework ? ` · ${c.framework.toUpperCase()}` : ''}
+                </Text>
+              </View>
+              <Text style={styles.chevron}>›</Text>
+            </Pressable>
+          ))}
+        </View>
+      ))}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, padding: 24 },
-  title: { fontSize: 40, fontWeight: '700' },
-  subtitle: { fontSize: 18, opacity: 0.7 },
-  meta: { fontSize: 13, opacity: 0.4, marginTop: 16 },
+  screen: { backgroundColor: colors.bg },
+  container: { padding: spacing.lg, paddingTop: 70, paddingBottom: 60, gap: spacing.sm },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: spacing.md,
+  },
+  greeting: { fontSize: 26, fontWeight: '800', color: colors.text },
+  sub: { fontSize: 15, color: colors.textDim, marginTop: 2 },
+  signOut: { color: colors.textDim, fontSize: 13 },
+  section: { marginTop: spacing.md, gap: spacing.sm },
+  sectionTitle: { fontSize: 19, fontWeight: '700', color: colors.text },
+  sectionBlurb: { fontSize: 13, color: colors.textDim, marginBottom: 4 },
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 14,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  cardTitle: { fontSize: 15, fontWeight: '600', color: colors.text },
+  cardMeta: { fontSize: 12, color: colors.textDim, marginTop: 3, textTransform: 'capitalize' },
+  chevron: { fontSize: 24, color: colors.textDim },
 });

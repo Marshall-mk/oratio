@@ -18,10 +18,14 @@ Legend: ✅ done · 🚧 in progress · ⬜ not started · 🙋 needs user actio
 - ⬜ `supabase link` + `db push` (blocked on cloud project)
 
 ## M1 — Auth + Onboarding
-- ⬜ Email sign-in via supabase-js (Google/Apple deferred to pre-release)
-- ⬜ Profile auto-create trigger on signup
-- ⬜ Onboarding screens (profile → goals → self-assessment)
-- ⬜ `GET/PUT /me/profile` with Supabase JWT verification
+- ✅ Email sign-in/sign-up screen via supabase-js (Google/Apple deferred to pre-release)
+- ✅ Profile auto-create trigger on signup (verified: signup → profiles row)
+- ✅ Onboarding screens: profile → goals → self-assessment (zustand store, chip multi-selects, confidence scale)
+- ✅ `GET/PUT /me/profile` + `GET /challenges[/{id}]` with Supabase JWT verification (e2e tested: 200s with real JWT, 401 without)
+- ✅ AuthGate routing: signed-out → sign-in; incomplete profile → onboarding; complete → home
+- ✅ Home screen lists 32 seeded challenges by gym (Thought/Structure/Speaking); challenge detail screen w/ framework hints + prep/speak timers
+- ✅ Typecheck + fresh bundle verified in simulator
+- ⬜ Manual walkthrough on device: sign up → onboard → browse challenges (recommended user smoke test)
 
 ## M2 — Recording + Live Transcript (riskiest)
 - ⬜ Spike: Python script streams WAV → Gemini Live → prints input transcriptions (validates model + silent-listener behavior)
