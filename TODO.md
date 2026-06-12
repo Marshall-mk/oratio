@@ -34,8 +34,9 @@ Legend: ✅ done · 🚧 in progress · ⬜ not started · 🙋 needs user actio
 - ✅ Transcript persisted (segments + full text) — verified in DB
 - ✅ Fallback path: `/attempts/{id}/transcribe-fallback` (storage download → Gemini batch transcription)
 - ✅ WAV upload helper (Supabase Storage, owner-scoped path) + signed-URL playback helper
-- 🚧 Dev build with `@siteed/audio-studio` (code + config plugin done; build blocked: Xcode 26.3 needs iOS 26 simulator runtime — downloading ~8GB)
-- ⬜ On-device verification: speak → live captions → WAV upload → results (needs dev build; also test airplane-mode fallback)
+- ✅ Dev build with `@siteed/audio-studio` (iOS 26.3.1 runtime installed; built + installed on iPhone 17 Pro sim; app boots and bundles cleanly)
+- 🙋 Manual smoke test: sign in → pick challenge → speak → live captions → results (mic interaction can't be automated; Metro + API + Supabase are running locally, ready to try)
+- ⬜ Airplane-mode fallback test (manual, alongside smoke test)
 
 ## M3 — Evaluation Pipeline
 - ✅ `evaluator.py`: transcript → Gemini structured output (Thought/Structure/Delivery, 19 dimension subscores, report, detections) — e2e verified in ~18s
@@ -58,9 +59,11 @@ Legend: ✅ done · 🚧 in progress · ⬜ not started · 🙋 needs user actio
 - ⬜ PostHog events (🙋 needs PostHog project + keys)
 
 ## M6 — Hardening
-- ⬜ Error states, WS reconnect, evaluation retry button
-- ⬜ EAS build profiles (TestFlight / internal track)
+- ✅ Evaluation retry: `POST /attempts/{id}/reevaluate` + "Re-run evaluation" button on failed attempts
+- ✅ EAS build profiles (`eas.json`: development/device/preview/production)
+- ⬜ WS reconnect mid-take (currently: fallback path covers it; reconnect is polish)
 - ⬜ Google + Apple sign-in (needs OAuth client setup)
+- ⬜ Session screen pause/resume (recorder supports it; UI not wired)
 
 ---
 

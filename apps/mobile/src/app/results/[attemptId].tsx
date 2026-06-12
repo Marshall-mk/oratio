@@ -54,7 +54,7 @@ export default function ResultsScreen() {
   const [playbackUrl, setPlaybackUrl] = useState<string | null>(null);
   const player = useAudioPlayer(playbackUrl ?? undefined);
 
-  const { data: attempt } = useQuery({
+  const { data: attempt, refetch } = useQuery({
     queryKey: ['attempt', attemptId],
     queryFn: () => api<AttemptDetail>(`/attempts/${attemptId}`),
     refetchInterval: (q) =>
@@ -106,7 +106,14 @@ export default function ResultsScreen() {
 
       {attempt?.status === 'failed' && (
         <View style={styles.banner}>
-          <Text style={styles.bannerText}>Evaluation failed — you can retry the challenge.</Text>
+          <Text style={styles.bannerText}>Evaluation failed — this is usually transient.</Text>
+          <Button
+            title="Re-run evaluation"
+            onPress={async () => {
+              await api(`/attempts/${attemptId}/reevaluate`, { method: 'POST' });
+              refetch();
+            }}
+          />
         </View>
       )}
 

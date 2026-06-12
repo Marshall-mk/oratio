@@ -201,6 +201,26 @@ async def complete_attempt(
     return _attempt_out(attempt)
 
 
+@router.post("/attempts/{attempt_id}/reevaluate", response_model=AttemptOut)
+async def reevaluate_attempt(
+    attempt_id: uuid.UUID, user: CurrentUser, db: DbSession
+) -> AttemptOut:
+    """Re-run evaluation after a failure (e.g. transient Gemini error/quota)."""
+    attempt = await _owned_attempt(db, user.id, attempt_id)
+    if attempt.status != "failed":
+        raise HTTPException(status_code=409, detail=f"Attempt is {attempt.status}, not failed")
+    transcript = (
+        await db.execute(select(Transcript).where(Transcript.attempt_id == attempt_id))
+    ).scalar_one_or_none()
+    if transcript is None:
+        raise HTTPException(status_code=409, detail="No transcript to evaluate")
+    attempt.status = "evaluating"
+    await db.commit()
+    await db.refresh(attempt)
+    asyncio.create_task(run_evaluation(attempt.id))
+    return _attempt_out(attempt)
+
+
 @router.post("/attempts/{attempt_id}/transcribe-fallback", response_model=AttemptOut)
 async def transcribe_fallback(
     attempt_id: uuid.UUID, body: AttemptCompleteIn, user: CurrentUser, db: DbSession
