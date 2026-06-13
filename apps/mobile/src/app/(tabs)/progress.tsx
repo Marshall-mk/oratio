@@ -4,7 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Sparkline } from '@/components/Sparkline';
 import { api } from '@/lib/api';
-import { colors, spacing } from '@/theme';
+import { colors, radius, scoreColor, spacing } from '@/theme';
 
 interface StageSeries {
   stage: string;
@@ -20,34 +20,27 @@ interface DimensionStat {
   average: number;
 }
 
+interface RecentAttempt {
+  attempt_id: string;
+  challenge_title: string;
+  challenge_category: string;
+  attempt_number: number;
+  overall_score: number | null;
+  created_at: string;
+}
+
 interface Progress {
   total_attempts: number;
   total_speaking_seconds: number;
   communication_iq: number | null;
   iq_delta: number | null;
   stages: StageSeries[];
-  recent_attempts: {
-    attempt_id: string;
-    challenge_title: string;
-    challenge_category: string;
-    attempt_number: number;
-    overall_score: number | null;
-    created_at: string;
-  }[];
+  recent_attempts: RecentAttempt[];
   advanced_metrics: Record<string, number | null> | null;
   detection_counts: Record<string, number>;
   strengths: DimensionStat[];
   weaknesses: DimensionStat[];
 }
-
-const METRIC_LABELS: Record<string, string> = {
-  wpm: 'Words / min',
-  filler_rate: 'Filler / 100 words',
-  unique_ratio: 'Vocab variety',
-  avg_sentence_length: 'Avg sentence',
-  reading_ease: 'Readability',
-  questions_per_attempt: 'Questions / attempt',
-};
 
 const STAGE_COLORS: Record<string, string> = {
   thought: '#7C5CFF',
@@ -58,43 +51,117 @@ const STAGE_COLORS: Record<string, string> = {
   vocabulary: '#5EE6C4',
 };
 
+const STAGE_LABELS: Record<string, string> = {
+  thought: 'Thought',
+  structure: 'Structure',
+  delivery: 'Delivery',
+  social: 'Social',
+  comprehension: 'Comprehension',
+  vocabulary: 'Vocabulary',
+};
+
+const METRIC_LABELS: Record<string, string> = {
+  wpm: 'Words / min',
+  filler_rate: 'Fillers /100',
+  unique_ratio: 'Vocab variety',
+  avg_sentence_length: 'Avg sentence',
+  reading_ease: 'Readability',
+  questions_per_attempt: 'Questions',
+};
+
+function Delta({ value, suffix }: { value: number; suffix?: string }) {
+  if (value === 0) return null;
+  const up = value > 0;
+  return (
+    <Text style={[styles.delta, { color: up ? colors.success : colors.danger }]}>
+      {up ? '▲' : '▼'} {Math.abs(value)}
+      {suffix}
+    </Text>
+  );
+}
+
+function fmtDate(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
 export default function ProgressScreen() {
   const router = useRouter();
-  const { data } = useQuery({
-    queryKey: ['progress'],
-    queryFn: () => api<Progress>('/me/progress'),
-  });
+  const { data } = useQuery({ queryKey: ['progress'], queryFn: () => api<Progress>('/me/progress') });
+
+  const stages = (data?.stages ?? []).filter((s) => s.points.length > 0);
+  const hasData = (data?.total_attempts ?? 0) > 0;
 
   return (
-    <ScrollView style={{ backgroundColor: colors.bg }} contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Your progress</Text>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
+      <Text style={styles.title}>Progress</Text>
 
+      {/* Communication IQ hero */}
+      <View style={styles.hero}>
+        <View style={styles.heroTop}>
+          <Text style={styles.heroLabel}>Communication IQ</Text>
+          {data?.iq_delta != null && <Delta value={data.iq_delta} />}
+        </View>
+        <Text style={styles.heroValue}>{data?.communication_iq ?? '—'}</Text>
+        <Text style={styles.heroHint}>
+          {hasData ? 'Composite of every score you earn' : 'Complete a challenge to begin'}
+        </Text>
+      </View>
+
+      {/* Secondary stats */}
       <View style={styles.statRow}>
         <View style={styles.statBox}>
-          <Text style={styles.statValue}>{data?.communication_iq ?? '—'}</Text>
-          <Text style={styles.statLabel}>Communication IQ</Text>
-          {data?.iq_delta != null && data.iq_delta !== 0 && (
-            <Text style={[styles.iqDelta, { color: data.iq_delta > 0 ? colors.success : colors.danger }]}>
-              {data.iq_delta > 0 ? '▲' : '▼'} {Math.abs(data.iq_delta)}
-            </Text>
-          )}
-        </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statValue}>{data?.total_attempts ?? '—'}</Text>
+          <Text style={styles.statValue}>{data?.total_attempts ?? 0}</Text>
           <Text style={styles.statLabel}>Attempts</Text>
         </View>
         <View style={styles.statBox}>
           <Text style={styles.statValue}>
-            {data ? Math.round(data.total_speaking_seconds / 60) : '—'}
+            {data ? Math.round(data.total_speaking_seconds / 60) : 0}
           </Text>
           <Text style={styles.statLabel}>Minutes spoken</Text>
         </View>
       </View>
 
+      {/* By stage */}
+      {stages.length > 0 && (
+        <>
+          <Text style={styles.sectionHeader}>By stage</Text>
+          <View style={styles.card}>
+            {stages.map((s, i) => {
+              const color = STAGE_COLORS[s.stage] ?? colors.accent;
+              const pct = Math.max(4, Math.min(100, (s.latest ?? 0) * 10));
+              return (
+                <View key={s.stage} style={[styles.stageRow, i > 0 && styles.stageDivider]}>
+                  <View style={styles.stageHead}>
+                    <Text style={styles.stageName}>{STAGE_LABELS[s.stage] ?? s.stage}</Text>
+                    <Text style={[styles.stageScore, { color }]}>{s.latest?.toFixed(1) ?? '—'}</Text>
+                  </View>
+                  <View style={styles.meterTrack}>
+                    <View style={[styles.meterFill, { width: `${pct}%`, backgroundColor: color }]} />
+                  </View>
+                  <View style={styles.stageMeta}>
+                    <Text style={styles.metaDim}>
+                      avg {s.average?.toFixed(1) ?? '—'} · {s.points.length}{' '}
+                      {s.points.length === 1 ? 'attempt' : 'attempts'}
+                    </Text>
+                    {s.delta_vs_first != null && <Delta value={s.delta_vs_first} suffix=" since start" />}
+                  </View>
+                  {s.points.length > 1 && (
+                    <View style={styles.spark}>
+                      <Sparkline points={s.points} color={color} />
+                    </View>
+                  )}
+                </View>
+              );
+            })}
+          </View>
+        </>
+      )}
+
+      {/* Speaking metrics */}
       {data?.advanced_metrics && (
-        <View style={styles.metricsCard}>
-          <Text style={styles.cardLabel}>Speaking metrics</Text>
-          <View style={styles.metricGrid}>
+        <>
+          <Text style={styles.sectionHeader}>Speaking metrics</Text>
+          <View style={[styles.card, styles.metricGrid]}>
             {Object.entries(data.advanced_metrics)
               .filter(([, v]) => v != null)
               .map(([k, v]) => (
@@ -104,172 +171,206 @@ export default function ProgressScreen() {
                 </View>
               ))}
           </View>
-        </View>
+        </>
       )}
 
+      {/* Strengths / weaknesses */}
       {data && (data.strengths.length > 0 || data.weaknesses.length > 0) && (
         <View style={styles.twoCol}>
-          <View style={[styles.dimCard, { flex: 1 }]}>
-            <Text style={[styles.cardLabel, { color: colors.success }]}>Strengths</Text>
+          <View style={[styles.card, styles.dimCard]}>
+            <Text style={[styles.dimHeader, { color: colors.success }]}>Strengths</Text>
             {data.strengths.map((d, i) => (
-              <Text key={i} style={styles.dimLine}>
-                {d.dimension} <Text style={styles.dimScore}>{d.average.toFixed(1)}</Text>
-              </Text>
+              <View key={i} style={styles.dimRow}>
+                <Text style={styles.dimName} numberOfLines={1}>{d.dimension}</Text>
+                <Text style={[styles.dimScore, { color: colors.success }]}>{d.average.toFixed(1)}</Text>
+              </View>
             ))}
           </View>
-          <View style={[styles.dimCard, { flex: 1 }]}>
-            <Text style={[styles.cardLabel, { color: colors.danger }]}>Work on</Text>
+          <View style={[styles.card, styles.dimCard]}>
+            <Text style={[styles.dimHeader, { color: colors.danger }]}>Work on</Text>
             {data.weaknesses.map((d, i) => (
-              <Text key={i} style={styles.dimLine}>
-                {d.dimension} <Text style={styles.dimScore}>{d.average.toFixed(1)}</Text>
-              </Text>
+              <View key={i} style={styles.dimRow}>
+                <Text style={styles.dimName} numberOfLines={1}>{d.dimension}</Text>
+                <Text style={[styles.dimScore, { color: colors.danger }]}>{d.average.toFixed(1)}</Text>
+              </View>
             ))}
           </View>
         </View>
       )}
 
+      {/* Habits to watch */}
       {data && Object.keys(data.detection_counts).length > 0 && (
-        <View style={styles.metricsCard}>
-          <Text style={styles.cardLabel}>Habits to watch</Text>
+        <>
+          <Text style={styles.sectionHeader}>Habits to watch</Text>
           <View style={styles.pills}>
             {Object.entries(data.detection_counts)
               .sort((a, b) => b[1] - a[1])
               .map(([name, count]) => (
                 <View key={name} style={styles.pill}>
-                  <Text style={styles.pillText}>
-                    {name.replace(/_/g, ' ')} ×{count}
-                  </Text>
+                  <Text style={styles.pillText}>{name.replace(/_/g, ' ')}</Text>
+                  <Text style={styles.pillCount}>{count}</Text>
                 </View>
               ))}
           </View>
-        </View>
+        </>
       )}
 
-      {(data?.stages ?? []).filter((s) => s.points.length > 0).map((s) => (
-        <View key={s.stage} style={styles.stageCard}>
-          <View style={styles.stageHeader}>
-            <Text style={styles.stageName}>{s.stage}</Text>
-            <View style={styles.stageNumbers}>
-              {s.delta_vs_first !== null && (
-                <Text
-                  style={[
-                    styles.delta,
-                    { color: s.delta_vs_first >= 0 ? colors.success : colors.danger },
-                  ]}>
-                  {s.delta_vs_first >= 0 ? '▲' : '▼'} {Math.abs(s.delta_vs_first).toFixed(1)} since first
-                </Text>
-              )}
-              <Text style={[styles.stageScore, { color: STAGE_COLORS[s.stage] }]}>
-                {s.latest?.toFixed(1) ?? '—'}
-              </Text>
-            </View>
-          </View>
-          {s.points.length > 0 ? (
-            <Sparkline points={s.points} color={STAGE_COLORS[s.stage]} />
-          ) : (
-            <Text style={styles.empty}>No attempts yet</Text>
-          )}
-          <Text style={styles.average}>avg {s.average?.toFixed(1) ?? '—'} · {s.points.length} scored attempts</Text>
-        </View>
-      ))}
-
-      <Text style={styles.sectionTitle}>Recent attempts</Text>
+      {/* Recent attempts */}
+      <Text style={styles.sectionHeader}>Recent attempts</Text>
       {(data?.recent_attempts ?? []).map((a) => (
         <Pressable
           key={a.attempt_id}
-          style={styles.attemptRow}
+          style={({ pressed }) => [styles.attemptRow, pressed && { opacity: 0.7 }]}
           onPress={() =>
             router.push({ pathname: '/results/[attemptId]', params: { attemptId: a.attempt_id } })
           }>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.attemptTitle}>{a.challenge_title}</Text>
+          <View style={styles.attemptLeft}>
+            <Text style={styles.attemptTitle} numberOfLines={1}>{a.challenge_title}</Text>
             <Text style={styles.attemptMeta}>
-              {a.challenge_category} · attempt #{a.attempt_number} ·{' '}
-              {new Date(a.created_at).toLocaleDateString()}
+              {a.challenge_category} · #{a.attempt_number} · {fmtDate(a.created_at)}
             </Text>
           </View>
-          <Text style={styles.attemptScore}>{a.overall_score?.toFixed(1) ?? '…'}</Text>
+          <View
+            style={[
+              styles.scorePill,
+              { backgroundColor: `${scoreColor(a.overall_score ?? 0)}22` },
+            ]}>
+            <Text style={[styles.scorePillText, { color: scoreColor(a.overall_score ?? 0) }]}>
+              {a.overall_score?.toFixed(1) ?? '–'}
+            </Text>
+          </View>
         </Pressable>
       ))}
       {data && data.recent_attempts.length === 0 && (
-        <Text style={styles.empty}>Complete your first challenge to see progress here.</Text>
+        <Text style={styles.empty}>Complete your first challenge to see it here.</Text>
       )}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: spacing.lg, paddingTop: 70, paddingBottom: 60, gap: spacing.md },
-  back: { color: colors.textDim, fontSize: 16 },
-  title: { fontSize: 28, fontWeight: '800', color: colors.text },
-  statRow: { flexDirection: 'row', gap: spacing.sm },
+  screen: { backgroundColor: colors.bg },
+  container: { padding: spacing.lg, paddingTop: 70, paddingBottom: 48, gap: spacing.md },
+  title: { fontSize: 30, fontWeight: '800', color: colors.text, letterSpacing: -0.5 },
+
+  hero: {
+    backgroundColor: colors.accentSoft,
+    borderWidth: 1,
+    borderColor: colors.accent,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    gap: 2,
+  },
+  heroTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  heroLabel: {
+    color: '#C8BEFF',
+    fontSize: 13,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  heroValue: { color: colors.text, fontSize: 52, fontWeight: '900', letterSpacing: -1 },
+  heroHint: { color: colors.textDim, fontSize: 13 },
+
+  statRow: { flexDirection: 'row', gap: spacing.md },
   statBox: {
     flex: 1,
     backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 14,
-    padding: spacing.md,
+    borderRadius: radius.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+  },
+  statValue: { fontSize: 26, fontWeight: '800', color: colors.text },
+  statLabel: { fontSize: 12, color: colors.textDim, marginTop: 2 },
+
+  sectionHeader: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.textDim,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginTop: spacing.sm,
+  },
+
+  card: {
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+  },
+
+  stageRow: { gap: spacing.sm },
+  stageDivider: { borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.md, marginTop: spacing.md },
+  stageHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  stageName: { fontSize: 17, fontWeight: '700', color: colors.text },
+  stageScore: { fontSize: 22, fontWeight: '800', fontVariant: ['tabular-nums'] },
+  meterTrack: { height: 10, borderRadius: radius.pill, backgroundColor: colors.track, overflow: 'hidden' },
+  meterFill: { height: 10, borderRadius: radius.pill },
+  stageMeta: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  metaDim: { fontSize: 12, color: colors.textFaint },
+  delta: { fontSize: 12, fontWeight: '700' },
+  spark: { marginTop: spacing.xs },
+
+  metricGrid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: spacing.lg, columnGap: spacing.sm },
+  metricItem: { width: '30%' },
+  metricValue: { fontSize: 22, fontWeight: '800', color: colors.text },
+  metricLabel: { fontSize: 11, color: colors.textDim, marginTop: 2 },
+
+  twoCol: { flexDirection: 'row', gap: spacing.md },
+  dimCard: { flex: 1, padding: spacing.md, gap: spacing.sm },
+  dimHeader: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+  dimRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  dimName: { color: colors.text, fontSize: 13, textTransform: 'capitalize', flex: 1, marginRight: 6 },
+  dimScore: { fontSize: 14, fontWeight: '800' },
+
+  pills: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  pill: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-  },
-  statValue: { fontSize: 24, fontWeight: '800', color: colors.text },
-  statLabel: { fontSize: 11, color: colors.textDim, textAlign: 'center' },
-  iqDelta: { fontSize: 12, fontWeight: '700' },
-  cardLabel: { color: colors.accent, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
-  metricsCard: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 14,
-    padding: spacing.md,
-    gap: spacing.sm,
-  },
-  metricGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
-  metricItem: { width: '28%', gap: 2 },
-  metricValue: { fontSize: 20, fontWeight: '800', color: colors.text },
-  metricLabel: { fontSize: 11, color: colors.textDim },
-  twoCol: { flexDirection: 'row', gap: spacing.sm },
-  dimCard: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 14,
-    padding: spacing.md,
     gap: 6,
-  },
-  dimLine: { color: colors.text, fontSize: 13, textTransform: 'capitalize' },
-  dimScore: { color: colors.textDim, fontWeight: '700' },
-  pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  pill: { backgroundColor: colors.bg, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4 },
-  pillText: { color: colors.danger, fontSize: 12, fontWeight: '600', textTransform: 'capitalize' },
-  stageCard: {
     backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 14,
-    padding: spacing.md,
-    gap: spacing.sm,
+    borderRadius: radius.pill,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
   },
-  stageHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  stageName: { fontSize: 16, fontWeight: '700', color: colors.text, textTransform: 'capitalize' },
-  stageNumbers: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  delta: { fontSize: 12, fontWeight: '600' },
-  stageScore: { fontSize: 22, fontWeight: '800' },
-  average: { fontSize: 12, color: colors.textDim },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: colors.text, marginTop: spacing.sm },
+  pillText: { color: colors.text, fontSize: 13, fontWeight: '600', textTransform: 'capitalize' },
+  pillCount: {
+    color: colors.danger,
+    fontSize: 12,
+    fontWeight: '800',
+    backgroundColor: '#3a1414',
+    borderRadius: radius.pill,
+    paddingHorizontal: 6,
+    overflow: 'hidden',
+  },
+
   attemptRow: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: radius.md,
     padding: spacing.md,
-    gap: spacing.sm,
+    gap: spacing.md,
   },
-  attemptTitle: { fontSize: 14, fontWeight: '600', color: colors.text },
-  attemptMeta: { fontSize: 12, color: colors.textDim, marginTop: 2, textTransform: 'capitalize' },
-  attemptScore: { fontSize: 18, fontWeight: '800', color: colors.accent },
+  attemptLeft: { flex: 1 },
+  attemptTitle: { fontSize: 16, fontWeight: '700', color: colors.text },
+  attemptMeta: { fontSize: 12, color: colors.textFaint, marginTop: 3, textTransform: 'capitalize' },
+  scorePill: {
+    minWidth: 48,
+    height: 40,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+  },
+  scorePillText: { fontSize: 18, fontWeight: '800', fontVariant: ['tabular-nums'] },
+
   empty: { color: colors.textDim, fontSize: 14, fontStyle: 'italic' },
 });
