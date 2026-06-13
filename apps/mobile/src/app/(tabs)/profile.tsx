@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -16,6 +17,7 @@ import { Chip } from '@/components/Chip';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useSettings, useUpdateSettings } from '@/hooks/useSettings';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
+import { api } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 import { colors, spacing } from '@/theme';
 
@@ -57,38 +59,6 @@ export default function Profile() {
 
   const [apiKey, setApiKey] = useState('');
   const [model, setModel] = useState<string | null>(null);
-  const [aiError, setAiError] = useState<string | null>(null);
-  const [aiSaved, setAiSaved] = useState(false);
-
-  useEffect(() => {
-    if (settings) setModel(settings.eval_model);
-  }, [settings]);
-
-  async function saveAi() {
-    setAiError(null);
-    setAiSaved(false);
-    try {
-      await updateSettings.mutateAsync({
-        eval_model: model ?? undefined,
-        gemini_api_key: apiKey.trim() ? apiKey.trim() : undefined,
-      });
-      setApiKey('');
-      setAiSaved(true);
-    } catch (e) {
-      setAiError(errorText(e));
-    }
-  }
-
-  async function clearKey() {
-    setAiError(null);
-    setAiSaved(false);
-    try {
-      await updateSettings.mutateAsync({ gemini_api_key: '' });
-    } catch (e) {
-      setAiError(errorText(e));
-    }
-  }
-
   const [displayName, setDisplayName] = useState('');
   const [profession, setProfession] = useState('');
   const [industry, setIndustry] = useState('');
@@ -98,6 +68,12 @@ export default function Profile() {
   const [useCases, setUseCases] = useState<string[]>([]);
   const [confidence, setConfidence] = useState<number | null>(null);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    if (settings) setModel(settings.eval_model);
+  }, [settings]);
 
   useEffect(() => {
     if (!profile) return;
@@ -111,19 +87,69 @@ export default function Profile() {
     setConfidence(profile.speaking_confidence ?? null);
   }, [profile]);
 
+  const saving = update.isPending || updateSettings.isPending;
+
+  // One Save covers both profile fields and AI settings.
   async function save() {
+    setError(null);
     setSaved(false);
-    await update.mutateAsync({
-      display_name: displayName,
-      profession,
-      industry,
-      education,
-      goals,
-      weaknesses,
-      primary_use_cases: useCases,
-      speaking_confidence: confidence,
-    });
-    setSaved(true);
+    try {
+      await Promise.all([
+        update.mutateAsync({
+          display_name: displayName,
+          profession,
+          industry,
+          education,
+          goals,
+          weaknesses,
+          primary_use_cases: useCases,
+          speaking_confidence: confidence,
+        }),
+        updateSettings.mutateAsync({
+          eval_model: model ?? undefined,
+          gemini_api_key: apiKey.trim() ? apiKey.trim() : undefined,
+        }),
+      ]);
+      setApiKey('');
+      setSaved(true);
+    } catch (e) {
+      setError(errorText(e));
+    }
+  }
+
+  async function clearKey() {
+    setError(null);
+    setSaved(false);
+    try {
+      await updateSettings.mutateAsync({ gemini_api_key: '' });
+    } catch (e) {
+      setError(errorText(e));
+    }
+  }
+
+  function confirmDelete() {
+    Alert.alert(
+      'Delete account',
+      'This permanently deletes your account and all your data. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setDeleting(true);
+            setError(null);
+            try {
+              await api('/me/account', { method: 'DELETE' });
+              await supabase.auth.signOut();
+            } catch (e) {
+              setError(errorText(e));
+              setDeleting(false);
+            }
+          },
+        },
+      ],
+    );
   }
 
   if (isLoading) {
@@ -138,7 +164,11 @@ export default function Profile() {
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>Profile</Text>
-        {session?.user.email && <Text style={styles.email}>{session.user.email}</Text>}
+
+        <Text style={styles.label}>Email</Text>
+        <View style={[styles.input, styles.readOnly]}>
+          <Text style={styles.readOnlyText}>{session?.user.email ?? '—'}</Text>
+        </View>
 
         <Text style={styles.label}>Name</Text>
         <TextInput style={styles.input} value={displayName} onChangeText={setDisplayName} placeholder="Your name" placeholderTextColor={colors.textDim} />
@@ -187,9 +217,6 @@ export default function Profile() {
           })}
         </View>
 
-        {saved && <Text style={styles.saved}>Saved ✓</Text>}
-        <Button title="Save changes" onPress={save} loading={update.isPending} />
-
         <View style={styles.divider} />
 
         <Text style={styles.sectionHeading}>AI settings</Text>
@@ -218,15 +245,33 @@ export default function Profile() {
           secureTextEntry
         />
 
-        {aiError && <Text style={styles.error}>{aiError}</Text>}
-        {aiSaved && <Text style={styles.saved}>AI settings saved ✓</Text>}
-        <Button title="Save AI settings" onPress={saveAi} loading={updateSettings.isPending} />
         {settings?.has_api_key && (
-          <Button title="Use ōrātiō's default key" variant="ghost" onPress={clearKey} />
+          <Button
+            title="Use default key"
+            variant="ghost"
+            onPress={clearKey}
+            style={styles.actionBtn}
+          />
         )}
 
+        {error && <Text style={styles.error}>{error}</Text>}
+        {saved && <Text style={styles.saved}>Saved ✓</Text>}
+        <Button title="Save" onPress={save} loading={saving} style={styles.actionBtn} />
+
         <View style={styles.divider} />
-        <Button title="Sign out" variant="ghost" onPress={() => supabase.auth.signOut()} />
+        <Button
+          title="Sign out"
+          variant="ghost"
+          onPress={() => supabase.auth.signOut()}
+          style={styles.actionBtn}
+        />
+        <Button
+          title="Delete account"
+          variant="danger"
+          onPress={confirmDelete}
+          loading={deleting}
+          style={styles.actionBtn}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -236,7 +281,9 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg },
   container: { padding: spacing.lg, paddingTop: 70, paddingBottom: 40, gap: spacing.sm },
   title: { fontSize: 28, fontWeight: '800', color: colors.text },
-  email: { fontSize: 14, color: colors.textDim, marginBottom: spacing.sm },
+  readOnly: { backgroundColor: colors.bg, justifyContent: 'center' },
+  readOnlyText: { color: colors.textDim, fontSize: 16 },
+  actionBtn: { alignSelf: 'center', paddingHorizontal: 40, marginTop: spacing.xs },
   label: { fontSize: 13, fontWeight: '700', color: colors.textDim, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: spacing.sm },
   input: {
     backgroundColor: colors.card,

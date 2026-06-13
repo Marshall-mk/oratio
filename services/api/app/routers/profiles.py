@@ -1,9 +1,11 @@
 import uuid
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, HTTPException
+import httpx
+from fastapi import APIRouter, HTTPException, Response, status
 from sqlalchemy import select
 
+from app.config import get_settings
 from app.deps import CurrentUser, DbSession
 from app.models import Profile
 from app.schemas.profiles import ProfileOut, ProfileUpdate
@@ -53,3 +55,43 @@ async def update_profile(body: ProfileUpdate, user: CurrentUser, db: DbSession) 
     await db.commit()
     await db.refresh(profile)
     return _to_out(profile)
+
+
+@router.delete("/account", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_account(user: CurrentUser) -> Response:
+    """Permanently delete the user's auth account; all data cascades from it."""
+    settings = get_settings()
+    if not settings.supabase_service_role_key:
+        raise HTTPException(status_code=503, detail="Account deletion is not configured")
+
+    # Best-effort: remove the user's stored recordings first.
+    headers = {
+        "Authorization": f"Bearer {settings.supabase_service_role_key}",
+        "apikey": settings.supabase_service_role_key,
+    }
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        try:
+            listing = await client.post(
+                f"{settings.supabase_url}/storage/v1/object/list/recordings",
+                headers=headers,
+                json={"prefix": f"{user.id}/"},
+            )
+            names = [f"{user.id}/{o['name']}" for o in listing.json()] if listing.is_success else []
+            if names:
+                await client.request(
+                    "DELETE",
+                    f"{settings.supabase_url}/storage/v1/object/recordings",
+                    headers=headers,
+                    json={"prefixes": names},
+                )
+        except Exception:
+            pass  # storage cleanup is best-effort; DB cascade is the source of truth
+
+        # Deleting the auth user cascades to every table that references it.
+        resp = await client.delete(
+            f"{settings.supabase_url}/auth/v1/admin/users/{user.id}", headers=headers
+        )
+        if resp.status_code not in (200, 204):
+            raise HTTPException(status_code=502, detail=f"Could not delete account: {resp.text}")
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
