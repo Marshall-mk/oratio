@@ -5,12 +5,15 @@ import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { api } from '@/lib/api';
-import { LiveSocket } from '@/lib/liveSocket';
+import { LiveSocket, type LiveSocketHandlers } from '@/lib/liveSocket';
 import { uploadRecording } from '@/lib/recordings';
 import { colors, spacing } from '@/theme';
 import type { Challenge } from '@/types/api';
 
 type Phase = 'connecting' | 'recording' | 'finishing' | 'error';
+
+const READY_TIMEOUT = 8000;
+const MAX_RECONNECTS = 3;
 
 export default function SessionScreen() {
   const { attemptId, challengeId } = useLocalSearchParams<{
@@ -21,18 +24,94 @@ export default function SessionScreen() {
   const recorder = useAudioRecorder();
 
   const [phase, setPhase] = useState<Phase>('connecting');
+  const [paused, setPaused] = useState(false);
+  const [reconnecting, setReconnecting] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [fallbackMode, setFallbackMode] = useState(false);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
+
   const socketRef = useRef<LiveSocket | null>(null);
   const finalReceived = useRef<Promise<void> | null>(null);
   const resolveFinal = useRef<(() => void) | null>(null);
   const scrollRef = useRef<ScrollView>(null);
+  // Synchronous mirrors of state for use inside socket/recorder callbacks.
+  const phaseRef = useRef<Phase>('connecting');
+  const pausedRef = useRef(false);
+  const connected = useRef(false);
+  const intentionalClose = useRef(false);
+  const reconnectingRef = useRef(false);
+  // A dropped socket leaves a gap in the live transcript, so once it happens we
+  // stop trusting the live transcript and finish via the fallback (full WAV).
+  const reconnectedDuringTake = useRef(false);
+
+  useEffect(() => {
+    phaseRef.current = phase;
+  }, [phase]);
 
   const { data: challenge } = useQuery({
     queryKey: ['challenge', challengeId],
     queryFn: () => api<Challenge>(`/challenges/${challengeId}`),
   });
+
+  function buildHandlers(onReadyOnce?: () => void): LiveSocketHandlers {
+    return {
+      onReady: () => {
+        connected.current = true;
+        onReadyOnce?.();
+      },
+      onDelta: (d) => {
+        setTranscript((prev) => prev + d.text);
+        scrollRef.current?.scrollToEnd({ animated: true });
+      },
+      onFinal: () => resolveFinal.current?.(),
+      onError: () => void handleDrop(),
+      onClose: () => void handleDrop(),
+    };
+  }
+
+  /** Handle an unexpected socket error/close: reconnect during a take, else fall back. */
+  async function handleDrop() {
+    if (intentionalClose.current) {
+      resolveFinal.current?.();
+      return;
+    }
+    if (!connected.current) {
+      setFallbackMode(true); // initial connection failed
+      return;
+    }
+    if (reconnectingRef.current || phaseRef.current !== 'recording') return;
+
+    reconnectingRef.current = true;
+    reconnectedDuringTake.current = true;
+    setReconnecting(true);
+
+    for (let attempt = 1; attempt <= MAX_RECONNECTS; attempt++) {
+      await new Promise((r) => setTimeout(r, 1200 * attempt));
+      if (intentionalClose.current || phaseRef.current !== 'recording') break;
+      try {
+        const next = new LiveSocket();
+        await new Promise<void>((resolve, reject) => {
+          const t = setTimeout(() => reject(new Error('timeout')), READY_TIMEOUT);
+          next
+            .connect(attemptId, buildHandlers(() => {
+              clearTimeout(t);
+              resolve();
+            }))
+            .catch(reject);
+        });
+        socketRef.current = next; // onAudioStream reads socketRef, so audio resumes
+        reconnectingRef.current = false;
+        setReconnecting(false);
+        return;
+      } catch {
+        /* try again */
+      }
+    }
+    // Reconnect exhausted: keep recording locally, finish via fallback.
+    reconnectingRef.current = false;
+    setReconnecting(false);
+    setFallbackMode(true);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -44,27 +123,13 @@ export default function SessionScreen() {
 
     async function begin() {
       try {
-        // Connect the live pipeline first so no audio is dropped.
         await new Promise<void>((resolve, reject) => {
-          const timer = setTimeout(() => reject(new Error('socket timeout')), 8000);
+          const timer = setTimeout(() => reject(new Error('socket timeout')), READY_TIMEOUT);
           socket
-            .connect(attemptId, {
-              onReady: () => {
-                clearTimeout(timer);
-                resolve();
-              },
-              onDelta: (d) => {
-                setTranscript((prev) => prev + d.text);
-                scrollRef.current?.scrollToEnd({ animated: true });
-              },
-              onFinal: () => resolveFinal.current?.(),
-              onError: () => {
-                clearTimeout(timer);
-                setFallbackMode(true);
-                reject(new Error('live socket failed'));
-              },
-              onClose: () => resolveFinal.current?.(),
-            })
+            .connect(attemptId, buildHandlers(() => {
+              clearTimeout(timer);
+              resolve();
+            }))
             .catch(reject);
         }).catch(() => setFallbackMode(true)); // recording continues without captions
 
@@ -76,7 +141,9 @@ export default function SessionScreen() {
           interval: 250,
           keepAwake: true,
           onAudioStream: async (event) => {
-            if (typeof event.data === 'string') socket.sendAudio(event.data);
+            if (!pausedRef.current && typeof event.data === 'string') {
+              socketRef.current?.sendAudio(event.data);
+            }
           },
         });
         if (!cancelled) setPhase('recording');
@@ -91,28 +158,41 @@ export default function SessionScreen() {
 
     return () => {
       cancelled = true;
-      socket.close();
+      intentionalClose.current = true;
+      socketRef.current?.close();
       recorder.stopRecording().catch(() => {});
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attemptId]);
 
+  async function togglePause() {
+    if (paused) {
+      await recorder.resumeRecording();
+      pausedRef.current = false;
+      setPaused(false);
+    } else {
+      await recorder.pauseRecording();
+      pausedRef.current = true;
+      setPaused(true);
+    }
+  }
+
   async function stop() {
     setPhase('finishing');
+    intentionalClose.current = true;
     try {
       const socket = socketRef.current;
-      const liveWorked = socket?.isOpen && !fallbackMode;
+      // Only trust the live transcript if the socket held for the whole take.
+      const liveWorked = !!socket?.isOpen && !fallbackMode && !reconnectedDuringTake.current;
 
+      if (paused) await recorder.resumeRecording().catch(() => {});
       const recording = await recorder.stopRecording();
+
       if (liveWorked && socket) {
         socket.stop();
-        // Wait for the server to finalize + persist the transcript (or close).
-        await Promise.race([
-          finalReceived.current,
-          new Promise((r) => setTimeout(r, 20000)),
-        ]);
-        socket.close();
+        await Promise.race([finalReceived.current, new Promise((r) => setTimeout(r, 20000))]);
       }
+      socket?.close();
 
       const durationSeconds = (recording?.durationMs ?? 0) / 1000;
       let storagePath: string | null = null;
@@ -120,7 +200,6 @@ export default function SessionScreen() {
         try {
           storagePath = await uploadRecording(recording.fileUri, attemptId);
         } catch {
-          // Playback is a nice-to-have on the live path; required for fallback.
           if (!liveWorked) throw new Error('Upload failed — cannot transcribe');
         }
       }
@@ -137,10 +216,7 @@ export default function SessionScreen() {
         }),
       });
 
-      router.replace({
-        pathname: '/results/[attemptId]',
-        params: { attemptId, challengeId },
-      });
+      router.replace({ pathname: '/results/[attemptId]', params: { attemptId, challengeId } });
     } catch (e) {
       setErrorDetail(e instanceof Error ? e.message : 'failed to finish');
       setPhase('error');
@@ -151,9 +227,11 @@ export default function SessionScreen() {
   const limit = challenge?.max_speak_seconds ?? 120;
 
   useEffect(() => {
-    if (phase === 'recording' && seconds >= limit) void stop();
+    if (phase === 'recording' && !paused && seconds >= limit) void stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seconds, phase, limit]);
+  }, [seconds, phase, paused, limit]);
+
+  const live = phase === 'recording' && !paused;
 
   return (
     <View style={styles.container}>
@@ -162,14 +240,26 @@ export default function SessionScreen() {
       </Text>
 
       <View style={styles.timerRow}>
-        <View style={[styles.dot, phase === 'recording' && styles.dotLive]} />
+        <View style={[styles.dot, live && styles.dotLive, paused && styles.dotPaused]} />
         <Text style={styles.timer}>
           {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, '0')}
         </Text>
-        <Text style={styles.limit}>/ {Math.floor(limit / 60)}:{String(limit % 60).padStart(2, '0')}</Text>
+        <Text style={styles.limit}>
+          / {Math.floor(limit / 60)}:{String(limit % 60).padStart(2, '0')}
+        </Text>
+        {paused && <Text style={styles.pausedTag}>PAUSED</Text>}
       </View>
 
-      <ScrollView ref={scrollRef} style={styles.transcriptBox} contentContainerStyle={{ padding: spacing.md }}>
+      {reconnecting && (
+        <View style={styles.reconnectBanner}>
+          <Text style={styles.reconnectText}>Connection dropped — reconnecting…</Text>
+        </View>
+      )}
+
+      <ScrollView
+        ref={scrollRef}
+        style={styles.transcriptBox}
+        contentContainerStyle={{ padding: spacing.md }}>
         {fallbackMode ? (
           <Text style={styles.fallbackNote}>
             Live captions unavailable — your recording will be transcribed after you stop.
@@ -191,19 +281,27 @@ export default function SessionScreen() {
           </Pressable>
         </View>
       ) : (
-        <Pressable
-          style={[styles.stopButton, phase !== 'recording' && { opacity: 0.5 }]}
-          disabled={phase !== 'recording'}
-          onPress={stop}>
-          {phase === 'finishing' ? (
-            <Text style={styles.stopLabel}>Finishing…</Text>
-          ) : (
-            <>
-              <View style={styles.stopSquare} />
-              <Text style={styles.stopLabel}>Stop</Text>
-            </>
-          )}
-        </Pressable>
+        <View style={styles.controls}>
+          <Pressable
+            style={[styles.pauseButton, phase !== 'recording' && { opacity: 0.4 }]}
+            disabled={phase !== 'recording'}
+            onPress={togglePause}>
+            <Text style={styles.pauseLabel}>{paused ? 'Resume' : 'Pause'}</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.stopButton, phase !== 'recording' && { opacity: 0.5 }]}
+            disabled={phase !== 'recording'}
+            onPress={stop}>
+            {phase === 'finishing' ? (
+              <Text style={styles.stopLabel}>Finishing…</Text>
+            ) : (
+              <>
+                <View style={styles.stopSquare} />
+                <Text style={styles.stopLabel}>Stop</Text>
+              </>
+            )}
+          </Pressable>
+        </View>
       )}
     </View>
   );
@@ -215,8 +313,17 @@ const styles = StyleSheet.create({
   timerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.border },
   dotLive: { backgroundColor: colors.danger },
+  dotPaused: { backgroundColor: '#E8B931' },
   timer: { fontSize: 34, fontWeight: '800', color: colors.text, fontVariant: ['tabular-nums'] },
   limit: { fontSize: 16, color: colors.textDim },
+  pausedTag: { fontSize: 12, fontWeight: '700', color: '#E8B931', marginLeft: 'auto' },
+  reconnectBanner: {
+    backgroundColor: '#3a2e10',
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: spacing.md,
+  },
+  reconnectText: { color: '#E8B931', fontSize: 13, fontWeight: '600' },
   transcriptBox: {
     flex: 1,
     backgroundColor: colors.card,
@@ -226,7 +333,19 @@ const styles = StyleSheet.create({
   },
   transcript: { color: colors.text, fontSize: 17, lineHeight: 26 },
   fallbackNote: { color: colors.textDim, fontSize: 15, fontStyle: 'italic' },
+  controls: { flexDirection: 'row', gap: spacing.sm },
+  pauseButton: {
+    paddingHorizontal: 24,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  pauseLabel: { color: colors.text, fontSize: 16, fontWeight: '700' },
   stopButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

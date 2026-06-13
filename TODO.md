@@ -61,9 +61,9 @@ Legend: ✅ done · 🚧 in progress · ⬜ not started · 🙋 needs user actio
 ## M6 — Hardening
 - ✅ Evaluation retry: `POST /attempts/{id}/reevaluate` + "Re-run evaluation" button on failed attempts
 - ✅ EAS build profiles (`eas.json`: development/device/preview/production)
-- ⬜ WS reconnect mid-take (currently: fallback path covers it; reconnect is polish)
-- ⬜ Google + Apple sign-in (needs OAuth client setup)
-- ⬜ Session screen pause/resume (recorder supports it; UI not wired)
+- ✅ WS reconnect mid-take: up to 3 backoff retries; resumes live captions on reconnect; any gap routes the finish to fallback batch transcription of the full WAV so the transcript is never partial
+- ✅ Session screen pause/resume (recorder pause/resume + UI; timer freezes, audio stops streaming while paused)
+- ⬜ Google + Apple sign-in (needs OAuth client setup — your call when to do this)
 
 ---
 
@@ -82,7 +82,8 @@ Legend: ✅ done · 🚧 in progress · ⬜ not started · 🙋 needs user actio
 - ✅ WS `/ws/roleplay-session`: multi-turn protocol, persona audio (base64 WAV) streamed back, conversation transcript persisted with roles → evaluation
 - ✅ 4th evaluation stage `social` (empathy, listening, validation, curiosity, conflict_management, persuasion) — roleplay-only, separate rubric/schema
 - ✅ Mobile: roleplay session screen (conversation thread, persona audio playback, turn control), challenge detail persona intro, home Scenario Gym section, results 4th score card, progress social trendline
-- 🚧 E2E verification (backend roleplay loop tested; on-device manual test pending)
+- ✅ E2E verified: backend roleplay loop (opener→turn→persona audio→save→4-stage eval incl. social); UI rendered in sim (Scenario Gym list + persona detail)
+- 🙋 Manual on-device test: hold a spoken roleplay conversation end-to-end (mic can't be automated)
 
 ## M8 — Text Lab (= PRD Phase 4 Vocabulary Academy + Phase 5 Reading Comprehension)
 *Insight: both are text-in/text-out exercise engines — no voice pipeline involved.*
