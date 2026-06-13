@@ -1,19 +1,20 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 
-import { colors } from '@/theme';
+import { useColors } from '@/theme';
 
 export default function TabsLayout() {
+  const c = useColors();
   return (
     <Tabs
       initialRouteName="progress"
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.accent,
-        tabBarInactiveTintColor: colors.textDim,
+        tabBarActiveTintColor: c.accent,
+        tabBarInactiveTintColor: c.textDim,
         tabBarStyle: {
-          backgroundColor: colors.card,
-          borderTopColor: colors.border,
+          backgroundColor: c.card,
+          borderTopColor: c.border,
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
       }}>

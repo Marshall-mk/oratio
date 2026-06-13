@@ -15,10 +15,12 @@ import {
 import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { api } from '@/lib/api';
-import { colors, spacing } from '@/theme';
+import { useColors, type AppColors, spacing } from '@/theme';
 import { VOCAB_DRILLS, type TextExercise } from '@/types/textlab';
 
 export default function VocabularyLab() {
+  const c = useColors();
+  const styles = makeStyles(c);
   const router = useRouter();
   const [subtype, setSubtype] = useState(VOCAB_DRILLS[0].subtype);
   const [text, setText] = useState('');
@@ -35,7 +37,7 @@ export default function VocabularyLab() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: colors.bg }}
+      style={{ flex: 1, backgroundColor: c.bg }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.container}>
         <BackButton onPress={() => router.back()} />
@@ -59,7 +61,7 @@ export default function VocabularyLab() {
         <TextInput
           style={[styles.input, styles.textArea]}
           placeholder="Enter your sentence or paragraph…"
-          placeholderTextColor={colors.textDim}
+          placeholderTextColor={c.textDim}
           value={text}
           onChangeText={setText}
           multiline
@@ -106,57 +108,59 @@ export default function VocabularyLab() {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: AppColors) {
+  return StyleSheet.create({
   container: { padding: spacing.lg, paddingTop: 70, paddingBottom: 60, gap: spacing.md },
-  back: { color: colors.textDim, fontSize: 16 },
-  title: { fontSize: 28, fontWeight: '800', color: colors.text },
-  subtitle: { fontSize: 14, color: colors.textDim, lineHeight: 20 },
-  sectionLabel: { color: colors.accent, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
+  back: { color: c.textDim, fontSize: 16 },
+  title: { fontSize: 28, fontWeight: '800', color: c.text },
+  subtitle: { fontSize: 14, color: c.textDim, lineHeight: 20 },
+  sectionLabel: { color: c.accent, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
   drills: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   drill: {
     width: '48%',
-    backgroundColor: colors.card,
+    backgroundColor: c.card,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
     borderRadius: 12,
     padding: spacing.md,
     gap: 2,
   },
-  drillActive: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
-  drillLabel: { color: colors.textDim, fontSize: 14, fontWeight: '700' },
-  drillLabelActive: { color: colors.text },
-  drillHint: { color: colors.textDim, fontSize: 11 },
+  drillActive: { borderColor: c.accent, backgroundColor: c.accentSoft },
+  drillLabel: { color: c.textDim, fontSize: 14, fontWeight: '700' },
+  drillLabelActive: { color: c.text },
+  drillHint: { color: c.textDim, fontSize: 11 },
   input: {
-    backgroundColor: colors.card,
+    backgroundColor: c.card,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
     borderRadius: 12,
     padding: 14,
-    color: colors.text,
+    color: c.text,
     fontSize: 16,
   },
   textArea: { minHeight: 120, textAlignVertical: 'top' },
-  error: { color: colors.danger },
+  error: { color: c.danger },
   scoreCard: {
-    backgroundColor: colors.accentSoft,
+    backgroundColor: c.accentSoft,
     borderRadius: 14,
     padding: spacing.lg,
     alignItems: 'center',
     gap: spacing.sm,
   },
-  scoreBig: { fontSize: 32, fontWeight: '800', color: colors.text },
+  scoreBig: { fontSize: 32, fontWeight: '800', color: c.text },
   section: {
-    backgroundColor: colors.card,
+    backgroundColor: c.card,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
     borderRadius: 14,
     padding: spacing.md,
     gap: spacing.sm,
   },
-  improved: { color: colors.text, fontSize: 16, lineHeight: 24 },
+  improved: { color: c.text, fontSize: 16, lineHeight: 24 },
   change: { gap: 2, marginBottom: spacing.sm },
   changeLine: { fontSize: 14, lineHeight: 20 },
-  original: { color: colors.danger, textDecorationLine: 'line-through' },
-  replacement: { color: colors.success, fontWeight: '600' },
-  reason: { color: colors.textDim, fontSize: 13 },
+  original: { color: c.danger, textDecorationLine: 'line-through' },
+  replacement: { color: c.success, fontWeight: '600' },
+  reason: { color: c.textDim, fontSize: 13 },
 });
+}

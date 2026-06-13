@@ -4,7 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { BackButton } from '@/components/BackButton';
 import { api } from '@/lib/api';
-import { colors, radius, spacing } from '@/theme';
+import { useColors, type AppColors, radius, spacing } from '@/theme';
 import type { Challenge } from '@/types/api';
 
 const META: Record<string, { label: string; blurb: string }> = {
@@ -17,6 +17,8 @@ const META: Record<string, { label: string; blurb: string }> = {
 };
 
 export default function GymCategory() {
+  const c = useColors();
+  const styles = makeStyles(c);
   const { category } = useLocalSearchParams<{ category: string }>();
   const router = useRouter();
   const meta = META[category] ?? { label: 'Training', blurb: '' };
@@ -70,6 +72,7 @@ export default function GymCategory() {
 }
 
 function Row({ title, meta, onPress }: { title: string; meta: string; onPress: () => void }) {
+  const styles = makeStyles(useColors());
   return (
     <Pressable style={({ pressed }) => [styles.row, pressed && { opacity: 0.8 }]} onPress={onPress}>
       <View style={{ flex: 1 }}>
@@ -81,24 +84,26 @@ function Row({ title, meta, onPress }: { title: string; meta: string; onPress: (
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { backgroundColor: colors.bg },
+function makeStyles(c: AppColors) {
+  return StyleSheet.create({
+  screen: { backgroundColor: c.bg },
   container: { padding: spacing.lg, paddingTop: 70, paddingBottom: 40, gap: spacing.sm },
-  back: { color: colors.textDim, fontSize: 16 },
-  title: { fontSize: 28, fontWeight: '800', color: colors.text, letterSpacing: -0.5 },
-  blurb: { fontSize: 14, color: colors.textDim, marginBottom: spacing.sm },
+  back: { color: c.textDim, fontSize: 16 },
+  title: { fontSize: 28, fontWeight: '800', color: c.text, letterSpacing: -0.5 },
+  blurb: { fontSize: 14, color: c.textDim, marginBottom: spacing.sm },
   list: { gap: spacing.sm, marginTop: spacing.xs },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.card,
+    backgroundColor: c.card,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
     borderRadius: radius.md,
     padding: spacing.md,
     gap: spacing.sm,
   },
-  rowTitle: { fontSize: 16, fontWeight: '600', color: colors.text },
-  rowMeta: { fontSize: 12, color: colors.textFaint, marginTop: 3, textTransform: 'capitalize' },
-  chevron: { fontSize: 24, color: colors.textDim },
+  rowTitle: { fontSize: 16, fontWeight: '600', color: c.text },
+  rowMeta: { fontSize: 12, color: c.textFaint, marginTop: 3, textTransform: 'capitalize' },
+  chevron: { fontSize: 24, color: c.textDim },
 });
+}

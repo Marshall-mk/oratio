@@ -4,7 +4,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button } from '@/components/Button';
 import { Chip } from '@/components/Chip';
 import { useOnboardingStore } from '@/stores/onboarding';
-import { colors, spacing } from '@/theme';
+import { useColors, type AppColors, spacing } from '@/theme';
 
 const GOAL_OPTIONS = [
   'Public speaking',
@@ -35,6 +35,8 @@ function toggle(list: string[], item: string): string[] {
 }
 
 export default function OnboardingGoals() {
+  const c = useColors();
+  const styles = makeStyles(c);
   const router = useRouter();
   const { goals, weaknesses, set } = useOnboardingStore();
 
@@ -71,10 +73,12 @@ export default function OnboardingGoals() {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: AppColors) {
+  return StyleSheet.create({
   container: { padding: spacing.lg, paddingTop: 80, gap: spacing.md },
-  step: { color: colors.accent, fontWeight: '700', fontSize: 13 },
-  title: { fontSize: 28, fontWeight: '800', color: colors.text },
-  section: { fontSize: 16, fontWeight: '700', color: colors.text, marginTop: spacing.md },
+  step: { color: c.accent, fontWeight: '700', fontSize: 13 },
+  title: { fontSize: 28, fontWeight: '800', color: c.text },
+  section: { fontSize: 16, fontWeight: '700', color: c.text, marginTop: spacing.md },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
 });
+}

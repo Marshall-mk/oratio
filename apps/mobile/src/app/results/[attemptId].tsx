@@ -10,7 +10,7 @@ import { ScoreCard } from '@/components/ScoreCard';
 import { useRetryAttempt } from '@/hooks/useStartSession';
 import { api } from '@/lib/api';
 import { getPlaybackUrl } from '@/lib/recordings';
-import { colors, spacing } from '@/theme';
+import { useColors, type AppColors, spacing } from '@/theme';
 
 interface StageScore {
   stage: string;
@@ -46,6 +46,8 @@ interface AttemptDetail {
 const STAGE_ORDER = ['thought', 'structure', 'delivery', 'social'];
 
 export default function ResultsScreen() {
+  const c = useColors();
+  const styles = makeStyles(c);
   const { attemptId, challengeId } = useLocalSearchParams<{
     attemptId: string;
     challengeId?: string;
@@ -78,7 +80,7 @@ export default function ResultsScreen() {
   );
 
   return (
-    <ScrollView style={{ backgroundColor: colors.bg }} contentContainerStyle={styles.container}>
+    <ScrollView style={{ backgroundColor: c.bg }} contentContainerStyle={styles.container}>
       <BackButton label="Home" onPress={() => router.dismissTo('/progress')} />
 
       <View style={styles.headerRow}>
@@ -98,7 +100,7 @@ export default function ResultsScreen() {
 
       {evaluating && (
         <View style={styles.evaluatingBox}>
-          <ActivityIndicator color={colors.accent} />
+          <ActivityIndicator color={c.accent} />
           <Text style={styles.evaluatingText}>Evaluating your thinking, structure, and delivery…</Text>
         </View>
       )}
@@ -147,13 +149,13 @@ export default function ResultsScreen() {
         <>
           <View style={styles.twoCol}>
             <View style={[styles.listCard, { flex: 1 }]}>
-              <Text style={[styles.listTitle, { color: colors.success }]}>Strengths</Text>
+              <Text style={[styles.listTitle, { color: c.success }]}>Strengths</Text>
               {report.strengths.map((s, i) => (
                 <Text key={i} style={styles.listItem}>• {s}</Text>
               ))}
             </View>
             <View style={[styles.listCard, { flex: 1 }]}>
-              <Text style={[styles.listTitle, { color: colors.danger }]}>Weaknesses</Text>
+              <Text style={[styles.listTitle, { color: c.danger }]}>Weaknesses</Text>
               {report.weaknesses.map((w, i) => (
                 <Text key={i} style={styles.listItem}>• {w}</Text>
               ))}
@@ -162,14 +164,14 @@ export default function ResultsScreen() {
 
           {report.best_sentence && (
             <View style={styles.sentenceCard}>
-              <Text style={[styles.listTitle, { color: colors.success }]}>Best sentence</Text>
+              <Text style={[styles.listTitle, { color: c.success }]}>Best sentence</Text>
               <Text style={styles.sentenceQuote}>“{report.best_sentence.text}”</Text>
               <Text style={styles.sentenceReason}>{report.best_sentence.reason}</Text>
             </View>
           )}
           {report.worst_sentence && (
             <View style={styles.sentenceCard}>
-              <Text style={[styles.listTitle, { color: colors.danger }]}>Weakest sentence</Text>
+              <Text style={[styles.listTitle, { color: c.danger }]}>Weakest sentence</Text>
               <Text style={styles.sentenceQuote}>“{report.worst_sentence.text}”</Text>
               <Text style={styles.sentenceReason}>{report.worst_sentence.reason}</Text>
             </View>
@@ -177,7 +179,7 @@ export default function ResultsScreen() {
 
           {report.suggested_rewrite && (
             <View style={styles.sentenceCard}>
-              <Text style={[styles.listTitle, { color: colors.accent }]}>Suggested rewrite</Text>
+              <Text style={[styles.listTitle, { color: c.accent }]}>Suggested rewrite</Text>
               <Text style={styles.sentenceQuote}>{report.suggested_rewrite}</Text>
             </View>
           )}
@@ -224,73 +226,75 @@ export default function ResultsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: AppColors) {
+  return StyleSheet.create({
   container: { padding: spacing.lg, paddingTop: 70, paddingBottom: 60, gap: spacing.md },
-  back: { color: colors.textDim, fontSize: 16 },
+  back: { color: c.textDim, fontSize: 16 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
-  title: { fontSize: 28, fontWeight: '800', color: colors.text },
-  overall: { fontSize: 30, fontWeight: '800', color: colors.accent },
-  overallMax: { fontSize: 15, color: colors.textDim, fontWeight: '600' },
-  meta: { fontSize: 14, color: colors.textDim },
+  title: { fontSize: 28, fontWeight: '800', color: c.text },
+  overall: { fontSize: 30, fontWeight: '800', color: c.accent },
+  overallMax: { fontSize: 15, color: c.textDim, fontWeight: '600' },
+  meta: { fontSize: 14, color: c.textDim },
   evaluatingBox: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xl },
-  evaluatingText: { color: colors.textDim, fontSize: 14 },
-  banner: { backgroundColor: colors.accentSoft, borderRadius: 12, padding: spacing.md },
-  bannerText: { color: colors.text, fontSize: 14 },
+  evaluatingText: { color: c.textDim, fontSize: 14 },
+  banner: { backgroundColor: c.accentSoft, borderRadius: 12, padding: spacing.md },
+  bannerText: { color: c.text, fontSize: 14 },
   diagnosisCard: {
-    backgroundColor: colors.accentSoft,
+    backgroundColor: c.accentSoft,
     borderRadius: 14,
     padding: spacing.md,
     gap: spacing.sm,
   },
-  diagnosisLabel: { color: colors.accent, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
-  diagnosis: { color: colors.text, fontSize: 16, lineHeight: 23, fontWeight: '600' },
+  diagnosisLabel: { color: c.accent, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
+  diagnosis: { color: c.text, fontSize: 16, lineHeight: 23, fontWeight: '600' },
   detections: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   detectionPill: {
-    backgroundColor: colors.bg,
+    backgroundColor: c.bg,
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
-  detectionText: { color: colors.danger, fontSize: 12, fontWeight: '600' },
+  detectionText: { color: c.danger, fontSize: 12, fontWeight: '600' },
   twoCol: { flexDirection: 'row', gap: spacing.sm },
   listCard: {
-    backgroundColor: colors.card,
+    backgroundColor: c.card,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
     borderRadius: 14,
     padding: spacing.md,
     gap: 6,
   },
   listTitle: { fontSize: 13, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
-  listItem: { color: colors.text, fontSize: 13, lineHeight: 19 },
+  listItem: { color: c.text, fontSize: 13, lineHeight: 19 },
   sentenceCard: {
-    backgroundColor: colors.card,
+    backgroundColor: c.card,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
     borderRadius: 14,
     padding: spacing.md,
     gap: spacing.sm,
   },
-  sentenceQuote: { color: colors.text, fontSize: 15, lineHeight: 22, fontStyle: 'italic' },
-  sentenceReason: { color: colors.textDim, fontSize: 13, lineHeight: 19 },
+  sentenceQuote: { color: c.text, fontSize: 15, lineHeight: 22, fontStyle: 'italic' },
+  sentenceReason: { color: c.textDim, fontSize: 13, lineHeight: 19 },
   retryCard: {
-    backgroundColor: colors.card,
+    backgroundColor: c.card,
     borderWidth: 1,
-    borderColor: colors.accent,
+    borderColor: c.accent,
     borderRadius: 14,
     padding: spacing.md,
     gap: spacing.sm,
   },
-  retryLabel: { color: colors.accent, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
-  retryText: { color: colors.text, fontSize: 15, lineHeight: 22 },
+  retryLabel: { color: c.accent, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
+  retryText: { color: c.text, fontSize: 15, lineHeight: 22 },
   card: {
-    backgroundColor: colors.card,
+    backgroundColor: c.card,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
     borderRadius: 14,
     padding: spacing.md,
     gap: spacing.sm,
   },
-  cardLabel: { color: colors.textDim, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 },
-  transcript: { color: colors.text, fontSize: 15, lineHeight: 23 },
+  cardLabel: { color: c.textDim, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 },
+  transcript: { color: c.text, fontSize: 15, lineHeight: 23 },
 });
+}

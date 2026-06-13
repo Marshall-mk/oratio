@@ -1,7 +1,8 @@
+import { useMemo } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
 
-import { colors } from '@/theme';
+import { useColors, type AppColors } from '@/theme';
 
 interface Props {
   title: string;
@@ -13,6 +14,8 @@ interface Props {
 }
 
 export function Button({ title, onPress, disabled, loading, variant = 'primary', style }: Props) {
+  const c = useColors();
+  const styles = useMemo(() => makeStyles(c), [c]);
   const isPrimary = variant === 'primary';
   const isDanger = variant === 'danger';
   const variantStyle = isPrimary ? styles.primary : isDanger ? styles.danger : styles.ghost;
@@ -28,7 +31,7 @@ export function Button({ title, onPress, disabled, loading, variant = 'primary',
         style,
       ]}>
       {loading ? (
-        <ActivityIndicator color={isPrimary ? '#fff' : isDanger ? colors.danger : colors.accent} />
+        <ActivityIndicator color={isPrimary ? c.onAccent : isDanger ? c.danger : c.accent} />
       ) : (
         <Text style={[styles.text, isDanger ? styles.dangerText : !isPrimary && styles.ghostText]}>
           {title}
@@ -38,20 +41,22 @@ export function Button({ title, onPress, disabled, loading, variant = 'primary',
   );
 }
 
-const styles = StyleSheet.create({
-  base: {
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  primary: { backgroundColor: colors.accent },
-  ghost: { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.border },
-  danger: { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.danger },
-  disabled: { opacity: 0.4 },
-  pressed: { opacity: 0.8 },
-  text: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  ghostText: { color: colors.text },
-  dangerText: { color: colors.danger },
-});
+function makeStyles(c: AppColors) {
+  return StyleSheet.create({
+    base: {
+      paddingVertical: 14,
+      paddingHorizontal: 24,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    primary: { backgroundColor: c.accent },
+    ghost: { backgroundColor: 'transparent', borderWidth: 1, borderColor: c.border },
+    danger: { backgroundColor: 'transparent', borderWidth: 1, borderColor: c.danger },
+    disabled: { opacity: 0.4 },
+    pressed: { opacity: 0.8 },
+    text: { color: c.onAccent, fontSize: 16, fontWeight: '600' },
+    ghostText: { color: c.text },
+    dangerText: { color: c.danger },
+  });
+}

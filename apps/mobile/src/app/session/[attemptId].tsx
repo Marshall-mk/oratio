@@ -7,7 +7,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { api } from '@/lib/api';
 import { LiveSocket, type LiveSocketHandlers } from '@/lib/liveSocket';
 import { uploadRecording } from '@/lib/recordings';
-import { colors, spacing } from '@/theme';
+import { useColors, type AppColors, spacing } from '@/theme';
 import type { Challenge } from '@/types/api';
 
 type Phase = 'connecting' | 'recording' | 'finishing' | 'error';
@@ -16,6 +16,8 @@ const READY_TIMEOUT = 8000;
 const MAX_RECONNECTS = 3;
 
 export default function SessionScreen() {
+  const c = useColors();
+  const styles = makeStyles(c);
   const { attemptId, challengeId } = useLocalSearchParams<{
     attemptId: string;
     challengeId: string;
@@ -307,56 +309,58 @@ export default function SessionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg, padding: spacing.lg, paddingTop: 70, gap: spacing.md },
-  prompt: { color: colors.textDim, fontSize: 15, lineHeight: 21 },
+function makeStyles(c: AppColors) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.bg, padding: spacing.lg, paddingTop: 70, gap: spacing.md },
+  prompt: { color: c.textDim, fontSize: 15, lineHeight: 21 },
   timerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.border },
-  dotLive: { backgroundColor: colors.danger },
-  dotPaused: { backgroundColor: '#E8B931' },
-  timer: { fontSize: 34, fontWeight: '800', color: colors.text, fontVariant: ['tabular-nums'] },
-  limit: { fontSize: 16, color: colors.textDim },
-  pausedTag: { fontSize: 12, fontWeight: '700', color: '#E8B931', marginLeft: 'auto' },
+  dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: c.border },
+  dotLive: { backgroundColor: c.danger },
+  dotPaused: { backgroundColor: c.textDim },
+  timer: { fontSize: 34, fontWeight: '800', color: c.text, fontVariant: ['tabular-nums'] },
+  limit: { fontSize: 16, color: c.textDim },
+  pausedTag: { fontSize: 12, fontWeight: '700', color: c.accent, marginLeft: 'auto' },
   reconnectBanner: {
-    backgroundColor: '#3a2e10',
+    backgroundColor: c.accentSoft,
     borderRadius: 10,
     paddingVertical: 8,
     paddingHorizontal: spacing.md,
   },
-  reconnectText: { color: '#E8B931', fontSize: 13, fontWeight: '600' },
+  reconnectText: { color: c.accent, fontSize: 13, fontWeight: '600' },
   transcriptBox: {
     flex: 1,
-    backgroundColor: colors.card,
+    backgroundColor: c.card,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
     borderRadius: 14,
   },
-  transcript: { color: colors.text, fontSize: 17, lineHeight: 26 },
-  fallbackNote: { color: colors.textDim, fontSize: 15, fontStyle: 'italic' },
+  transcript: { color: c.text, fontSize: 17, lineHeight: 26 },
+  fallbackNote: { color: c.textDim, fontSize: 15, fontStyle: 'italic' },
   controls: { flexDirection: 'row', gap: spacing.sm },
   pauseButton: {
     paddingHorizontal: 24,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.card,
+    backgroundColor: c.card,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
   },
-  pauseLabel: { color: colors.text, fontSize: 16, fontWeight: '700' },
+  pauseLabel: { color: c.text, fontSize: 16, fontWeight: '700' },
   stopButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
-    backgroundColor: colors.danger,
+    backgroundColor: c.danger,
     borderRadius: 14,
     paddingVertical: 16,
   },
   stopSquare: { width: 14, height: 14, borderRadius: 2, backgroundColor: '#fff' },
   stopLabel: { color: '#fff', fontSize: 17, fontWeight: '700' },
   errorBox: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.md },
-  error: { color: colors.danger, textAlign: 'center' },
-  errorAction: { color: colors.accent, fontWeight: '600' },
+  error: { color: c.danger, textAlign: 'center' },
+  errorAction: { color: c.accent, fontWeight: '600' },
 });
+}

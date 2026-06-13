@@ -19,7 +19,13 @@ import { useSettings, useUpdateSettings } from '@/hooks/useSettings';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { api } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
-import { colors, spacing } from '@/theme';
+import { useColors, useTheme, type AppColors, type ThemeMode, spacing } from '@/theme';
+
+const APPEARANCE_OPTIONS: { value: ThemeMode; label: string }[] = [
+  { value: 'system', label: 'System' },
+  { value: 'light', label: 'Light' },
+  { value: 'dark', label: 'Dark' },
+];
 
 function errorText(e: unknown): string {
   if (e instanceof Error) {
@@ -51,6 +57,9 @@ function toggle(list: string[], item: string): string[] {
 }
 
 export default function Profile() {
+  const c = useColors();
+  const { mode, setMode } = useTheme();
+  const styles = makeStyles(c);
   const { session } = useSupabaseSession();
   const { data: profile, isLoading } = useProfile();
   const update = useUpdateProfile();
@@ -155,13 +164,13 @@ export default function Profile() {
   if (isLoading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color={colors.accent} />
+        <ActivityIndicator color={c.accent} />
       </View>
     );
   }
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: c.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>Profile</Text>
 
@@ -171,16 +180,16 @@ export default function Profile() {
         </View>
 
         <Text style={styles.label}>Name</Text>
-        <TextInput style={styles.input} value={displayName} onChangeText={setDisplayName} placeholder="Your name" placeholderTextColor={colors.textDim} />
+        <TextInput style={styles.input} value={displayName} onChangeText={setDisplayName} placeholder="Your name" placeholderTextColor={c.textDim} />
 
         <Text style={styles.label}>Profession</Text>
-        <TextInput style={styles.input} value={profession} onChangeText={setProfession} placeholder="e.g. PhD student, founder" placeholderTextColor={colors.textDim} />
+        <TextInput style={styles.input} value={profession} onChangeText={setProfession} placeholder="e.g. PhD student, founder" placeholderTextColor={c.textDim} />
 
         <Text style={styles.label}>Industry / field</Text>
-        <TextInput style={styles.input} value={industry} onChangeText={setIndustry} placeholder="Industry" placeholderTextColor={colors.textDim} />
+        <TextInput style={styles.input} value={industry} onChangeText={setIndustry} placeholder="Industry" placeholderTextColor={c.textDim} />
 
         <Text style={styles.label}>Education</Text>
-        <TextInput style={styles.input} value={education} onChangeText={setEducation} placeholder="Education" placeholderTextColor={colors.textDim} />
+        <TextInput style={styles.input} value={education} onChangeText={setEducation} placeholder="Education" placeholderTextColor={c.textDim} />
 
         <Text style={styles.label}>Goals</Text>
         <View style={styles.chips}>
@@ -219,6 +228,23 @@ export default function Profile() {
 
         <View style={styles.divider} />
 
+        <Text style={styles.sectionHeading}>Appearance</Text>
+        <View style={styles.segment}>
+          {APPEARANCE_OPTIONS.map((o) => {
+            const active = mode === o.value;
+            return (
+              <Pressable
+                key={o.value}
+                onPress={() => setMode(o.value)}
+                style={[styles.segmentItem, active && styles.segmentItemActive]}>
+                <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{o.label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <View style={styles.divider} />
+
         <Text style={styles.sectionHeading}>AI settings</Text>
         <Text style={styles.aiNote}>
           {settings?.using_own_key
@@ -239,7 +265,7 @@ export default function Profile() {
           value={apiKey}
           onChangeText={setApiKey}
           placeholder={settings?.has_api_key ? 'Enter a new key to replace it' : 'Paste your Gemini API key'}
-          placeholderTextColor={colors.textDim}
+          placeholderTextColor={c.textDim}
           autoCapitalize="none"
           autoCorrect={false}
           secureTextEntry
@@ -277,21 +303,22 @@ export default function Profile() {
   );
 }
 
-const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg },
+function makeStyles(c: AppColors) {
+  return StyleSheet.create({
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: c.bg },
   container: { padding: spacing.lg, paddingTop: 70, paddingBottom: 40, gap: spacing.sm },
-  title: { fontSize: 28, fontWeight: '800', color: colors.text },
-  readOnly: { backgroundColor: colors.bg, justifyContent: 'center' },
-  readOnlyText: { color: colors.textDim, fontSize: 16 },
+  title: { fontSize: 28, fontWeight: '800', color: c.text },
+  readOnly: { backgroundColor: c.bg, justifyContent: 'center' },
+  readOnlyText: { color: c.textDim, fontSize: 16 },
   actionBtn: { alignSelf: 'center', paddingHorizontal: 40, marginTop: spacing.xs },
-  label: { fontSize: 13, fontWeight: '700', color: colors.textDim, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: spacing.sm },
+  label: { fontSize: 13, fontWeight: '700', color: c.textDim, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: spacing.sm },
   input: {
-    backgroundColor: colors.card,
+    backgroundColor: c.card,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
     borderRadius: 12,
     padding: 14,
-    color: colors.text,
+    color: c.text,
     fontSize: 16,
   },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
@@ -302,17 +329,31 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.card,
+    borderColor: c.border,
+    backgroundColor: c.card,
     gap: 4,
   },
-  confSelected: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
-  confNum: { fontSize: 18, fontWeight: '800', color: colors.textDim },
-  confNumSelected: { color: colors.text },
-  confLabel: { fontSize: 9, color: colors.textDim, textAlign: 'center' },
-  saved: { color: colors.success, textAlign: 'center', fontWeight: '600' },
-  error: { color: colors.danger, textAlign: 'center' },
-  divider: { height: 1, backgroundColor: colors.border, marginVertical: spacing.md },
-  sectionHeading: { fontSize: 20, fontWeight: '800', color: colors.text },
-  aiNote: { fontSize: 13, color: colors.textDim, marginBottom: spacing.xs },
+  confSelected: { borderColor: c.accent, backgroundColor: c.accentSoft },
+  confNum: { fontSize: 18, fontWeight: '800', color: c.textDim },
+  confNumSelected: { color: c.text },
+  confLabel: { fontSize: 9, color: c.textDim, textAlign: 'center' },
+  saved: { color: c.success, textAlign: 'center', fontWeight: '600' },
+  error: { color: c.danger, textAlign: 'center' },
+  divider: { height: 1, backgroundColor: c.border, marginVertical: spacing.md },
+  sectionHeading: { fontSize: 20, fontWeight: '800', color: c.text },
+  aiNote: { fontSize: 13, color: c.textDim, marginBottom: spacing.xs },
+  segment: {
+    flexDirection: 'row',
+    backgroundColor: c.card,
+    borderWidth: 1,
+    borderColor: c.border,
+    borderRadius: 12,
+    padding: 4,
+    gap: 4,
+  },
+  segmentItem: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 9 },
+  segmentItemActive: { backgroundColor: c.accent },
+  segmentText: { color: c.textDim, fontSize: 14, fontWeight: '600' },
+  segmentTextActive: { color: c.onAccent },
 });
+}

@@ -5,7 +5,7 @@ import { Button } from '@/components/Button';
 import { Chip } from '@/components/Chip';
 import { useUpdateProfile } from '@/hooks/useProfile';
 import { useOnboardingStore } from '@/stores/onboarding';
-import { colors, spacing } from '@/theme';
+import { useColors, type AppColors, spacing } from '@/theme';
 
 const USE_CASE_OPTIONS = [
   'Research',
@@ -25,6 +25,8 @@ function toggle(list: string[], item: string): string[] {
 }
 
 export default function OnboardingAssessment() {
+  const c = useColors();
+  const styles = makeStyles(c);
   const store = useOnboardingStore();
   const updateProfile = useUpdateProfile();
   const [error, setError] = useState<string | null>(null);
@@ -95,11 +97,12 @@ export default function OnboardingAssessment() {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: AppColors) {
+  return StyleSheet.create({
   container: { padding: spacing.lg, paddingTop: 80, gap: spacing.md },
-  step: { color: colors.accent, fontWeight: '700', fontSize: 13 },
-  title: { fontSize: 28, fontWeight: '800', color: colors.text },
-  section: { fontSize: 16, fontWeight: '700', color: colors.text, marginTop: spacing.md },
+  step: { color: c.accent, fontWeight: '700', fontSize: 13 },
+  title: { fontSize: 28, fontWeight: '800', color: c.text },
+  section: { fontSize: 16, fontWeight: '700', color: c.text, marginTop: spacing.md },
   confidenceRow: { flexDirection: 'row', gap: spacing.sm },
   confidence: {
     flex: 1,
@@ -107,14 +110,15 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.card,
+    borderColor: c.border,
+    backgroundColor: c.card,
     gap: 4,
   },
-  confidenceSelected: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
-  confidenceNum: { fontSize: 20, fontWeight: '800', color: colors.textDim },
-  confidenceNumSelected: { color: colors.text },
-  confidenceLabel: { fontSize: 10, color: colors.textDim, textAlign: 'center' },
+  confidenceSelected: { borderColor: c.accent, backgroundColor: c.accentSoft },
+  confidenceNum: { fontSize: 20, fontWeight: '800', color: c.textDim },
+  confidenceNumSelected: { color: c.text },
+  confidenceLabel: { fontSize: 10, color: c.textDim, textAlign: 'center' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  error: { color: colors.danger },
+  error: { color: c.danger },
 });
+}

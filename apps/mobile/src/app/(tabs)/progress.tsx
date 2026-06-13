@@ -4,7 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Sparkline } from '@/components/Sparkline';
 import { api } from '@/lib/api';
-import { colors, radius, scoreColor, spacing } from '@/theme';
+import { useColors, type AppColors, radius, scoreColor, spacing } from '@/theme';
 
 interface StageSeries {
   stage: string;
@@ -42,15 +42,6 @@ interface Progress {
   weaknesses: DimensionStat[];
 }
 
-const STAGE_COLORS: Record<string, string> = {
-  thought: '#7C5CFF',
-  structure: '#3DDC97',
-  delivery: '#E8B931',
-  social: '#FF7AB6',
-  comprehension: '#4FB8FF',
-  vocabulary: '#5EE6C4',
-};
-
 const STAGE_LABELS: Record<string, string> = {
   thought: 'Thought',
   structure: 'Structure',
@@ -70,10 +61,11 @@ const METRIC_LABELS: Record<string, string> = {
 };
 
 function Delta({ value, suffix }: { value: number; suffix?: string }) {
+  const c = useColors();
   if (value === 0) return null;
   const up = value > 0;
   return (
-    <Text style={[styles.delta, { color: up ? colors.success : colors.danger }]}>
+    <Text style={{ fontSize: 12, fontWeight: '700', color: up ? c.success : c.danger }}>
       {up ? '▲' : '▼'} {Math.abs(value)}
       {suffix}
     </Text>
@@ -85,6 +77,8 @@ function fmtDate(iso: string): string {
 }
 
 export default function ProgressScreen() {
+  const c = useColors();
+  const styles = makeStyles(c);
   const router = useRouter();
   const { data } = useQuery({ queryKey: ['progress'], queryFn: () => api<Progress>('/me/progress') });
 
@@ -127,7 +121,7 @@ export default function ProgressScreen() {
           <Text style={styles.sectionHeader}>By stage</Text>
           <View style={styles.card}>
             {stages.map((s, i) => {
-              const color = STAGE_COLORS[s.stage] ?? colors.accent;
+              const color = c.accent;
               const pct = Math.max(4, Math.min(100, (s.latest ?? 0) * 10));
               return (
                 <View key={s.stage} style={[styles.stageRow, i > 0 && styles.stageDivider]}>
@@ -178,20 +172,20 @@ export default function ProgressScreen() {
       {data && (data.strengths.length > 0 || data.weaknesses.length > 0) && (
         <View style={styles.twoCol}>
           <View style={[styles.card, styles.dimCard]}>
-            <Text style={[styles.dimHeader, { color: colors.success }]}>Strengths</Text>
+            <Text style={[styles.dimHeader, { color: c.success }]}>Strengths</Text>
             {data.strengths.map((d, i) => (
               <View key={i} style={styles.dimRow}>
                 <Text style={styles.dimName} numberOfLines={1}>{d.dimension}</Text>
-                <Text style={[styles.dimScore, { color: colors.success }]}>{d.average.toFixed(1)}</Text>
+                <Text style={[styles.dimScore, { color: c.success }]}>{d.average.toFixed(1)}</Text>
               </View>
             ))}
           </View>
           <View style={[styles.card, styles.dimCard]}>
-            <Text style={[styles.dimHeader, { color: colors.danger }]}>Work on</Text>
+            <Text style={[styles.dimHeader, { color: c.danger }]}>Work on</Text>
             {data.weaknesses.map((d, i) => (
               <View key={i} style={styles.dimRow}>
                 <Text style={styles.dimName} numberOfLines={1}>{d.dimension}</Text>
-                <Text style={[styles.dimScore, { color: colors.danger }]}>{d.average.toFixed(1)}</Text>
+                <Text style={[styles.dimScore, { color: c.danger }]}>{d.average.toFixed(1)}</Text>
               </View>
             ))}
           </View>
@@ -234,9 +228,9 @@ export default function ProgressScreen() {
           <View
             style={[
               styles.scorePill,
-              { backgroundColor: `${scoreColor(a.overall_score ?? 0)}22` },
+              { backgroundColor: `${scoreColor(c, a.overall_score ?? 0)}22` },
             ]}>
-            <Text style={[styles.scorePillText, { color: scoreColor(a.overall_score ?? 0) }]}>
+            <Text style={[styles.scorePillText, { color: scoreColor(c, a.overall_score ?? 0) }]}>
               {a.overall_score?.toFixed(1) ?? '–'}
             </Text>
           </View>
@@ -249,83 +243,84 @@ export default function ProgressScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { backgroundColor: colors.bg },
+function makeStyles(c: AppColors) {
+  return StyleSheet.create({
+  screen: { backgroundColor: c.bg },
   container: { padding: spacing.lg, paddingTop: 70, paddingBottom: 48, gap: spacing.md },
-  title: { fontSize: 30, fontWeight: '800', color: colors.text, letterSpacing: -0.5 },
+  title: { fontSize: 30, fontWeight: '800', color: c.text, letterSpacing: -0.5 },
 
   hero: {
-    backgroundColor: colors.accentSoft,
+    backgroundColor: c.accentSoft,
     borderWidth: 1,
-    borderColor: colors.accent,
+    borderColor: c.accent,
     borderRadius: radius.lg,
     padding: spacing.lg,
     gap: 2,
   },
   heroTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   heroLabel: {
-    color: '#C8BEFF',
+    color: c.accent,
     fontSize: 13,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
-  heroValue: { color: colors.text, fontSize: 52, fontWeight: '900', letterSpacing: -1 },
-  heroHint: { color: colors.textDim, fontSize: 13 },
+  heroValue: { color: c.text, fontSize: 52, fontWeight: '900', letterSpacing: -1 },
+  heroHint: { color: c.textDim, fontSize: 13 },
 
   statRow: { flexDirection: 'row', gap: spacing.md },
   statBox: {
     flex: 1,
-    backgroundColor: colors.card,
+    backgroundColor: c.card,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
     borderRadius: radius.md,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
   },
-  statValue: { fontSize: 26, fontWeight: '800', color: colors.text },
-  statLabel: { fontSize: 12, color: colors.textDim, marginTop: 2 },
+  statValue: { fontSize: 26, fontWeight: '800', color: c.text },
+  statLabel: { fontSize: 12, color: c.textDim, marginTop: 2 },
 
   sectionHeader: {
     fontSize: 13,
     fontWeight: '700',
-    color: colors.textDim,
+    color: c.textDim,
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginTop: spacing.sm,
   },
-  sectionCaption: { fontSize: 12, color: colors.textFaint, marginTop: -spacing.xs },
+  sectionCaption: { fontSize: 12, color: c.textFaint, marginTop: -spacing.xs },
 
   card: {
-    backgroundColor: colors.card,
+    backgroundColor: c.card,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
     borderRadius: radius.lg,
     padding: spacing.lg,
   },
 
   stageRow: { gap: spacing.sm },
-  stageDivider: { borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.md, marginTop: spacing.md },
+  stageDivider: { borderTopWidth: 1, borderTopColor: c.border, paddingTop: spacing.md, marginTop: spacing.md },
   stageHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-  stageName: { fontSize: 17, fontWeight: '700', color: colors.text },
+  stageName: { fontSize: 17, fontWeight: '700', color: c.text },
   stageScore: { fontSize: 22, fontWeight: '800', fontVariant: ['tabular-nums'] },
-  meterTrack: { height: 10, borderRadius: radius.pill, backgroundColor: colors.track, overflow: 'hidden' },
+  meterTrack: { height: 10, borderRadius: radius.pill, backgroundColor: c.track, overflow: 'hidden' },
   meterFill: { height: 10, borderRadius: radius.pill },
   stageMeta: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  metaDim: { fontSize: 12, color: colors.textFaint },
+  metaDim: { fontSize: 12, color: c.textFaint },
   delta: { fontSize: 12, fontWeight: '700' },
   spark: { marginTop: spacing.xs },
 
   metricGrid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: spacing.lg, columnGap: spacing.sm },
   metricItem: { width: '30%' },
-  metricValue: { fontSize: 22, fontWeight: '800', color: colors.text },
-  metricLabel: { fontSize: 11, color: colors.textDim, marginTop: 2 },
+  metricValue: { fontSize: 22, fontWeight: '800', color: c.text },
+  metricLabel: { fontSize: 11, color: c.textDim, marginTop: 2 },
 
   twoCol: { flexDirection: 'row', gap: spacing.md },
   dimCard: { flex: 1, padding: spacing.md, gap: spacing.sm },
   dimHeader: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
   dimRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  dimName: { color: colors.text, fontSize: 13, textTransform: 'capitalize', flex: 1, marginRight: 6 },
+  dimName: { color: c.text, fontSize: 13, textTransform: 'capitalize', flex: 1, marginRight: 6 },
   dimScore: { fontSize: 14, fontWeight: '800' },
 
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
@@ -333,19 +328,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: colors.card,
+    backgroundColor: c.card,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
     borderRadius: radius.pill,
     paddingVertical: 6,
     paddingHorizontal: 12,
   },
-  pillText: { color: colors.text, fontSize: 13, fontWeight: '600', textTransform: 'capitalize' },
+  pillText: { color: c.text, fontSize: 13, fontWeight: '600', textTransform: 'capitalize' },
   pillCount: {
-    color: colors.danger,
+    color: c.danger,
     fontSize: 12,
     fontWeight: '800',
-    backgroundColor: '#3a1414',
+    backgroundColor: c.dangerSoft,
     borderRadius: radius.pill,
     paddingHorizontal: 6,
     overflow: 'hidden',
@@ -354,16 +349,16 @@ const styles = StyleSheet.create({
   attemptRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.card,
+    backgroundColor: c.card,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
     borderRadius: radius.md,
     padding: spacing.md,
     gap: spacing.md,
   },
   attemptLeft: { flex: 1 },
-  attemptTitle: { fontSize: 16, fontWeight: '700', color: colors.text },
-  attemptMeta: { fontSize: 12, color: colors.textFaint, marginTop: 3, textTransform: 'capitalize' },
+  attemptTitle: { fontSize: 16, fontWeight: '700', color: c.text },
+  attemptMeta: { fontSize: 12, color: c.textFaint, marginTop: 3, textTransform: 'capitalize' },
   scorePill: {
     minWidth: 48,
     height: 40,
@@ -374,5 +369,6 @@ const styles = StyleSheet.create({
   },
   scorePillText: { fontSize: 18, fontWeight: '800', fontVariant: ['tabular-nums'] },
 
-  empty: { color: colors.textDim, fontSize: 14, fontStyle: 'italic' },
+  empty: { color: c.textDim, fontSize: 14, fontStyle: 'italic' },
 });
+}

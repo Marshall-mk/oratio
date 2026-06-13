@@ -3,9 +3,11 @@ import { KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } fro
 
 import { Button } from '@/components/Button';
 import { supabase } from '@/lib/supabase';
-import { colors, spacing } from '@/theme';
+import { useColors, type AppColors, spacing } from '@/theme';
 
 export default function SignIn() {
+  const c = useColors();
+  const styles = makeStyles(c);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [mode, setMode] = useState<'sign-in' | 'sign-up'>('sign-in');
@@ -36,7 +38,7 @@ export default function SignIn() {
         <TextInput
           style={styles.input}
           placeholder="Email"
-          placeholderTextColor={colors.textDim}
+          placeholderTextColor={c.textDim}
           autoCapitalize="none"
           keyboardType="email-address"
           value={email}
@@ -45,7 +47,7 @@ export default function SignIn() {
         <TextInput
           style={styles.input}
           placeholder="Password"
-          placeholderTextColor={colors.textDim}
+          placeholderTextColor={c.textDim}
           secureTextEntry
           value={password}
           onChangeText={setPassword}
@@ -69,24 +71,26 @@ export default function SignIn() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg, justifyContent: 'center' },
+function makeStyles(c: AppColors) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.bg, justifyContent: 'center' },
   inner: { padding: spacing.lg, gap: spacing.md },
-  logo: { fontSize: 42, fontWeight: '800', color: colors.text, textAlign: 'center' },
+  logo: { fontSize: 42, fontWeight: '800', color: c.text, textAlign: 'center' },
   tagline: {
     fontSize: 16,
-    color: colors.textDim,
+    color: c.textDim,
     textAlign: 'center',
     marginBottom: spacing.lg,
   },
   input: {
-    backgroundColor: colors.card,
+    backgroundColor: c.card,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
     borderRadius: 12,
     padding: 14,
-    color: colors.text,
+    color: c.text,
     fontSize: 16,
   },
-  error: { color: colors.danger, textAlign: 'center' },
+  error: { color: c.danger, textAlign: 'center' },
 });
+}

@@ -17,10 +17,12 @@ import {
 import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { api } from '@/lib/api';
-import { colors, spacing } from '@/theme';
+import { useColors, type AppColors, spacing } from '@/theme';
 import type { TextExercise } from '@/types/textlab';
 
 export default function ReadingLab() {
+  const c = useColors();
+  const styles = makeStyles(c);
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [text, setText] = useState('');
@@ -67,7 +69,7 @@ export default function ReadingLab() {
   // ---- Input phase ----
   if (!exerciseId) {
     return (
-      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: c.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.container}>
           <BackButton onPress={() => router.back()} />
           <Text style={styles.title}>Reading Lab</Text>
@@ -77,14 +79,14 @@ export default function ReadingLab() {
           <TextInput
             style={styles.input}
             placeholder="Title (optional)"
-            placeholderTextColor={colors.textDim}
+            placeholderTextColor={c.textDim}
             value={title}
             onChangeText={setTitle}
           />
           <TextInput
             style={[styles.input, styles.textArea]}
             placeholder="Paste the text here…"
-            placeholderTextColor={colors.textDim}
+            placeholderTextColor={c.textDim}
             value={text}
             onChangeText={setText}
             multiline
@@ -106,7 +108,7 @@ export default function ReadingLab() {
   if (!exercise || exercise.status === 'generating') {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color={colors.accent} />
+        <ActivityIndicator color={c.accent} />
         <Text style={styles.subtitle}>Building your study pack…</Text>
       </View>
     );
@@ -126,7 +128,7 @@ export default function ReadingLab() {
   const result = submit.data ?? (scored ? exercise : null);
 
   return (
-    <ScrollView style={{ backgroundColor: colors.bg }} contentContainerStyle={styles.container}>
+    <ScrollView style={{ backgroundColor: c.bg }} contentContainerStyle={styles.container}>
       <BackButton label="Gym" onPress={() => router.dismissTo('/gym')} />
       <Text style={styles.title}>{exercise.source_title ?? 'Study pack'}</Text>
 
@@ -213,6 +215,7 @@ export default function ReadingLab() {
 }
 
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
+  const styles = makeStyles(useColors());
   return (
     <View style={styles.section}>
       <Text style={styles.sectionLabel}>{label}</Text>
@@ -221,65 +224,67 @@ function Section({ label, children }: { label: string; children: React.ReactNode
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: AppColors) {
+  return StyleSheet.create({
   container: { padding: spacing.lg, paddingTop: 70, paddingBottom: 60, gap: spacing.md },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.md, backgroundColor: colors.bg, padding: spacing.lg },
-  back: { color: colors.textDim, fontSize: 16 },
-  title: { fontSize: 28, fontWeight: '800', color: colors.text },
-  subtitle: { fontSize: 14, color: colors.textDim, lineHeight: 20 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.md, backgroundColor: c.bg, padding: spacing.lg },
+  back: { color: c.textDim, fontSize: 16 },
+  title: { fontSize: 28, fontWeight: '800', color: c.text },
+  subtitle: { fontSize: 14, color: c.textDim, lineHeight: 20 },
   input: {
-    backgroundColor: colors.card,
+    backgroundColor: c.card,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
     borderRadius: 12,
     padding: 14,
-    color: colors.text,
+    color: c.text,
     fontSize: 16,
   },
   textArea: { minHeight: 200, textAlignVertical: 'top' },
-  error: { color: colors.danger },
+  error: { color: c.danger },
   section: {
-    backgroundColor: colors.card,
+    backgroundColor: c.card,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
     borderRadius: 14,
     padding: spacing.md,
     gap: spacing.xs,
   },
-  sectionLabel: { color: colors.accent, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
-  body: { color: colors.text, fontSize: 15, lineHeight: 22 },
-  term: { color: colors.text, fontSize: 15, fontWeight: '700' },
+  sectionLabel: { color: c.accent, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
+  body: { color: c.text, fontSize: 15, lineHeight: 22 },
+  term: { color: c.text, fontSize: 15, fontWeight: '700' },
   argNode: { marginBottom: spacing.sm },
-  claim: { color: colors.text, fontSize: 15, fontWeight: '600' },
-  support: { color: colors.textDim, fontSize: 14, lineHeight: 20, marginTop: 2 },
-  quizHeader: { fontSize: 19, fontWeight: '800', color: colors.text, marginTop: spacing.sm },
+  claim: { color: c.text, fontSize: 15, fontWeight: '600' },
+  support: { color: c.textDim, fontSize: 14, lineHeight: 20, marginTop: 2 },
+  quizHeader: { fontSize: 19, fontWeight: '800', color: c.text, marginTop: spacing.sm },
   quizCard: {
-    backgroundColor: colors.card,
+    backgroundColor: c.card,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
     borderRadius: 14,
     padding: spacing.md,
     gap: spacing.sm,
   },
-  question: { color: colors.text, fontSize: 15, fontWeight: '600', lineHeight: 21 },
+  question: { color: c.text, fontSize: 15, fontWeight: '600', lineHeight: 21 },
   option: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: c.border,
     borderRadius: 10,
     padding: 12,
-    backgroundColor: colors.bg,
+    backgroundColor: c.bg,
   },
-  optionSelected: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
-  optionCorrect: { borderColor: colors.success, backgroundColor: '#10301f' },
-  optionWrong: { borderColor: colors.danger, backgroundColor: '#3a1414' },
-  optionText: { color: colors.text, fontSize: 14 },
-  explanation: { color: colors.textDim, fontSize: 13, fontStyle: 'italic', lineHeight: 19 },
+  optionSelected: { borderColor: c.accent, backgroundColor: c.accentSoft },
+  optionCorrect: { borderColor: c.success, backgroundColor: c.accentSoft },
+  optionWrong: { borderColor: c.danger, backgroundColor: c.dangerSoft },
+  optionText: { color: c.text, fontSize: 14 },
+  explanation: { color: c.textDim, fontSize: 13, fontStyle: 'italic', lineHeight: 19 },
   scoreCard: {
-    backgroundColor: colors.accentSoft,
+    backgroundColor: c.accentSoft,
     borderRadius: 14,
     padding: spacing.lg,
     alignItems: 'center',
     gap: spacing.sm,
   },
-  scoreBig: { fontSize: 28, fontWeight: '800', color: colors.text },
+  scoreBig: { fontSize: 28, fontWeight: '800', color: c.text },
 });
+}

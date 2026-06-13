@@ -8,13 +8,15 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { api } from '@/lib/api';
 import { writeWavBase64 } from '@/lib/audioFile';
 import { RoleplaySocket } from '@/lib/roleplaySocket';
-import { colors, spacing } from '@/theme';
+import { useColors, type AppColors, spacing } from '@/theme';
 import type { Challenge } from '@/types/api';
 
 type Turn = { role: 'user' | 'persona'; text: string };
 type Phase = 'connecting' | 'persona_speaking' | 'your_turn' | 'speaking' | 'ending' | 'error';
 
 export default function RoleplayScreen() {
+  const c = useColors();
+  const styles = makeStyles(c);
   const { attemptId, challengeId } = useLocalSearchParams<{
     attemptId: string;
     challengeId: string;
@@ -180,31 +182,33 @@ export default function RoleplayScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg, padding: spacing.lg, paddingTop: 70, gap: spacing.md },
+function makeStyles(c: AppColors) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.bg, padding: spacing.lg, paddingTop: 70, gap: spacing.md },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  persona: { fontSize: 20, fontWeight: '800', color: colors.text },
-  end: { color: colors.accent, fontSize: 14, fontWeight: '700' },
+  persona: { fontSize: 20, fontWeight: '800', color: c.text },
+  end: { color: c.accent, fontSize: 14, fontWeight: '700' },
   thread: { flex: 1 },
   threadContent: { gap: spacing.sm, paddingVertical: spacing.sm },
   bubble: { maxWidth: '85%', borderRadius: 16, padding: spacing.md },
-  personaBubble: { backgroundColor: colors.card, alignSelf: 'flex-start', borderBottomLeftRadius: 4 },
-  userBubble: { backgroundColor: colors.accentSoft, alignSelf: 'flex-end', borderBottomRightRadius: 4 },
-  bubbleText: { color: colors.text, fontSize: 15, lineHeight: 22 },
-  status: { color: colors.textDim, fontSize: 13, fontStyle: 'italic', alignSelf: 'flex-start', marginTop: 4 },
+  personaBubble: { backgroundColor: c.card, alignSelf: 'flex-start', borderBottomLeftRadius: 4 },
+  userBubble: { backgroundColor: c.accentSoft, alignSelf: 'flex-end', borderBottomRightRadius: 4 },
+  bubbleText: { color: c.text, fontSize: 15, lineHeight: 22 },
+  status: { color: c.textDim, fontSize: 13, fontStyle: 'italic', alignSelf: 'flex-start', marginTop: 4 },
   micButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
-    backgroundColor: colors.accent,
+    backgroundColor: c.accent,
     borderRadius: 14,
     paddingVertical: 16,
   },
-  micActive: { backgroundColor: colors.danger },
+  micActive: { backgroundColor: c.danger },
   stopSquare: { width: 14, height: 14, borderRadius: 2, backgroundColor: '#fff' },
   micLabel: { color: '#fff', fontSize: 16, fontWeight: '700' },
   errorBox: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.md },
-  errorText: { color: colors.danger, textAlign: 'center' },
-  errorAction: { color: colors.accent, fontWeight: '600' },
+  errorText: { color: c.danger, textAlign: 'center' },
+  errorAction: { color: c.accent, fontWeight: '600' },
 });
+}
