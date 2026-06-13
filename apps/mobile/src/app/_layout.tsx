@@ -26,7 +26,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     } else if (session && profile.data && !profile.data.onboarding_completed_at && !inOnboarding) {
       router.replace('/(onboarding)/profile');
     } else if (session && profile.data?.onboarding_completed_at && (inAuth || inOnboarding)) {
-      router.replace('/');
+      router.replace('/progress');
     }
   }, [session, loading, profile.isLoading, profile.data, segments, router]);
 

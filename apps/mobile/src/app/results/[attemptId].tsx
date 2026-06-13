@@ -78,7 +78,7 @@ export default function ResultsScreen() {
 
   return (
     <ScrollView style={{ backgroundColor: colors.bg }} contentContainerStyle={styles.container}>
-      <Pressable onPress={() => router.dismissTo('/')}>
+      <Pressable onPress={() => router.dismissTo('/progress')}>
         <Text style={styles.back}>‹ Home</Text>
       </Pressable>
 

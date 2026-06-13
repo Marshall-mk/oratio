@@ -67,9 +67,6 @@ export default function ProgressScreen() {
 
   return (
     <ScrollView style={{ backgroundColor: colors.bg }} contentContainerStyle={styles.container}>
-      <Pressable onPress={() => router.back()}>
-        <Text style={styles.back}>‹ Back</Text>
-      </Pressable>
       <Text style={styles.title}>Your progress</Text>
 
       <View style={styles.statRow}>

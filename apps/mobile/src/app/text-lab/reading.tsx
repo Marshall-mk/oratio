@@ -128,7 +128,7 @@ export default function ReadingLab() {
 
   return (
     <ScrollView style={{ backgroundColor: colors.bg }} contentContainerStyle={styles.container}>
-      <Pressable onPress={() => router.dismissTo('/')}>
+      <Pressable onPress={() => router.dismissTo('/gym')}>
         <Text style={styles.back}>‹ Home</Text>
       </Pressable>
       <Text style={styles.title}>{exercise.source_title ?? 'Study pack'}</Text>
@@ -199,7 +199,7 @@ export default function ReadingLab() {
             {result.feedback.correct}/{result.feedback.total} correct
           </Text>
           <Text style={styles.subtitle}>Comprehension score {result.score?.toFixed(1)}/10</Text>
-          <Button title="Done" onPress={() => router.dismissTo('/')} />
+          <Button title="Done" onPress={() => router.dismissTo('/gym')} />
         </View>
       ) : (
         <Button
