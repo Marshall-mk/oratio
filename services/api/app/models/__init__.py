@@ -3,6 +3,7 @@ from app.models.challenges import Challenge
 from app.models.evaluations import FeedbackReport, Score
 from app.models.profiles import Profile
 from app.models.sessions import Attempt, AudioFile, Session, Transcript
+from app.models.text_lab import TextExercise
 
 __all__ = [
     "Base",
@@ -14,4 +15,5 @@ __all__ = [
     "Transcript",
     "Score",
     "FeedbackReport",
+    "TextExercise",
 ]

@@ -49,6 +49,29 @@ export default function Home() {
 
       {isLoading && <Text style={styles.sub}>Loading challenges…</Text>}
 
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Text Lab</Text>
+        <Text style={styles.sectionBlurb}>Train reading and vocabulary — no mic needed</Text>
+        <Pressable
+          style={({ pressed }) => [styles.card, pressed && { opacity: 0.8 }]}
+          onPress={() => router.push('/text-lab/reading')}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.cardTitle}>Reading Lab</Text>
+            <Text style={styles.cardMeta}>Paste or upload text → study pack + comprehension quiz</Text>
+          </View>
+          <Text style={styles.chevron}>›</Text>
+        </Pressable>
+        <Pressable
+          style={({ pressed }) => [styles.card, pressed && { opacity: 0.8 }]}
+          onPress={() => router.push('/text-lab/vocabulary')}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.cardTitle}>Vocabulary Lab</Text>
+            <Text style={styles.cardMeta}>Upgrade, rewrite, and sharpen your writing</Text>
+          </View>
+          <Text style={styles.chevron}>›</Text>
+        </Pressable>
+      </View>
+
       {CATEGORY_ORDER.map((cat) => {
         const items = byCategory(cat);
         if (items.length === 0) return null;

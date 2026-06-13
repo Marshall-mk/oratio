@@ -85,13 +85,15 @@ Legend: ✅ done · 🚧 in progress · ⬜ not started · 🙋 needs user actio
 - ✅ E2E verified: backend roleplay loop (opener→turn→persona audio→save→4-stage eval incl. social); UI rendered in sim (Scenario Gym list + persona detail)
 - 🙋 Manual on-device test: hold a spoken roleplay conversation end-to-end (mic can't be automated)
 
-## M8 — Text Lab (= PRD Phase 4 Vocabulary Academy + Phase 5 Reading Comprehension)
+## M8 — Text Lab (= PRD Phase 4 Vocabulary Academy + Phase 5 Reading Comprehension) ✅
 *Insight: both are text-in/text-out exercise engines — no voice pipeline involved.*
-- ⬜ Shared exercise engine: source text → Gemini generates exercises → user answers → structured scoring
-- ⬜ Reading side: PDF/article upload → summary, definitions, key ideas, argument map → quiz → comprehension score
-- ⬜ Vocabulary side: word/sentence upgrade drills, academic/professional/persuasive rewrites, simplification
-- ⬜ Vocabulary tracking from BOTH labs and speech transcripts: range, unique words, overused words
-- ⬜ New score stages: `comprehension`, `vocabulary`
+- ✅ `text_exercises` table (migration 0003) + structured-output Gemini pipeline
+- ✅ Reading: paste text OR pick a PDF (via expo-file-system picker — no new native module) → study pack (summary, definitions, key ideas, argument map) + comprehension quiz (answer key hidden until submit) → graded comprehension score (1-10)
+- ✅ Vocabulary: 6 drills (word/sentence upgrade, academic/professional/persuasive rewrite, simplify) → Gemini scores original + returns improved version with per-change reasons
+- ✅ New score series `comprehension` + `vocabulary` folded into /me/progress and Communication IQ
+- ✅ Mobile: Reading Lab + Vocabulary Lab screens, Text Lab home section; e2e verified (backend) + UI rendered in sim
+- ⬜ Deeper vocabulary tracking (unique words / overused words across speech transcripts) → moved to M9 analytics
+- 🙋 Manual on-device test: paste an article, take the quiz; run a vocab drill
 
 ## M9 — Personal Model + Analytics (= PRD Phase 7 Communication Twin + Phase 8 Analytics)
 *Insight: Phase 7 is the data layer, Phase 8 is its dashboard — one milestone, two surfaces.*

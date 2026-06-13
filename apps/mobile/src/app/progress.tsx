@@ -34,6 +34,8 @@ const STAGE_COLORS: Record<string, string> = {
   structure: '#3DDC97',
   delivery: '#E8B931',
   social: '#FF7AB6',
+  comprehension: '#4FB8FF',
+  vocabulary: '#5EE6C4',
 };
 
 export default function ProgressScreen() {

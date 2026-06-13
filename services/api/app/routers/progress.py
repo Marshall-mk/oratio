@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 
 from app.deps import CurrentUser, DbSession
-from app.models import Attempt, Challenge, FeedbackReport, Score, Session
+from app.models import Attempt, Challenge, FeedbackReport, Score, Session, TextExercise
 
 router = APIRouter(prefix="/me", tags=["progress"])
 
@@ -90,6 +90,34 @@ async def get_progress(user: CurrentUser, db: DbSession) -> ProgressOut:
         stages.append(
             StageSeries(
                 stage=stage,
+                points=points,
+                average=round(sum(points) / len(points), 1) if points else None,
+                latest=points[-1] if points else None,
+                delta_vs_first=round(points[-1] - points[0], 1) if len(points) >= 2 else None,
+            )
+        )
+
+    # Text Lab adds comprehension + vocabulary series from scored text_exercises.
+    text_rows = (
+        (
+            await db.execute(
+                select(TextExercise)
+                .where(
+                    TextExercise.user_id == user_id,
+                    TextExercise.status == "scored",
+                    TextExercise.score.is_not(None),
+                )
+                .order_by(TextExercise.created_at)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    for stage_name, kind in (("comprehension", "reading"), ("vocabulary", "vocabulary")):
+        points = [float(r.score) for r in text_rows if r.kind == kind]
+        stages.append(
+            StageSeries(
+                stage=stage_name,
                 points=points,
                 average=round(sum(points) / len(points), 1) if points else None,
                 latest=points[-1] if points else None,
