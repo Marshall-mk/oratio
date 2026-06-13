@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { ScoreCard } from '@/components/ScoreCard';
 import { useRetryAttempt } from '@/hooks/useStartSession';
@@ -78,9 +79,7 @@ export default function ResultsScreen() {
 
   return (
     <ScrollView style={{ backgroundColor: colors.bg }} contentContainerStyle={styles.container}>
-      <Pressable onPress={() => router.dismissTo('/progress')}>
-        <Text style={styles.back}>‹ Home</Text>
-      </Pressable>
+      <BackButton label="Home" onPress={() => router.dismissTo('/progress')} />
 
       <View style={styles.headerRow}>
         <Text style={styles.title}>Attempt #{attempt?.attempt_number ?? '…'}</Text>

@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 
+import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { api } from '@/lib/api';
 import { colors, spacing } from '@/theme';
@@ -37,9 +38,7 @@ export default function VocabularyLab() {
       style={{ flex: 1, backgroundColor: colors.bg }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.container}>
-        <Pressable onPress={() => router.back()}>
-          <Text style={styles.back}>‹ Back</Text>
-        </Pressable>
+        <BackButton onPress={() => router.back()} />
         <Text style={styles.title}>Vocabulary Lab</Text>
 
         <Text style={styles.sectionLabel}>Choose a drill</Text>

@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { BackButton } from '@/components/BackButton';
 import { api } from '@/lib/api';
 import { colors, radius, spacing } from '@/theme';
 import type { Challenge } from '@/types/api';
@@ -28,9 +29,7 @@ export default function GymCategory() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
-      <Pressable onPress={() => router.back()}>
-        <Text style={styles.back}>‹ Gym</Text>
-      </Pressable>
+      <BackButton label="Gym" onPress={() => router.back()} />
       <Text style={styles.title}>{meta.label}</Text>
       <Text style={styles.blurb}>{meta.blurb}</Text>
 

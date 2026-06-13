@@ -14,6 +14,7 @@ import {
   View,
 } from 'react-native';
 
+import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { api } from '@/lib/api';
 import { colors, spacing } from '@/theme';
@@ -68,9 +69,7 @@ export default function ReadingLab() {
     return (
       <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.container}>
-          <Pressable onPress={() => router.back()}>
-            <Text style={styles.back}>‹ Back</Text>
-          </Pressable>
+          <BackButton onPress={() => router.back()} />
           <Text style={styles.title}>Reading Lab</Text>
           <Text style={styles.subtitle}>
             Paste an article, essay, or paper — or pick a PDF. You'll get a study pack and a quiz.
@@ -128,9 +127,7 @@ export default function ReadingLab() {
 
   return (
     <ScrollView style={{ backgroundColor: colors.bg }} contentContainerStyle={styles.container}>
-      <Pressable onPress={() => router.dismissTo('/gym')}>
-        <Text style={styles.back}>‹ Home</Text>
-      </Pressable>
+      <BackButton label="Gym" onPress={() => router.dismissTo('/gym')} />
       <Text style={styles.title}>{exercise.source_title ?? 'Study pack'}</Text>
 
       <Section label="Summary">
