@@ -202,6 +202,7 @@ export default function ProgressScreen() {
       {data && Object.keys(data.detection_counts).length > 0 && (
         <>
           <Text style={styles.sectionHeader}>Habits to watch</Text>
+          <Text style={styles.sectionCaption}>Times flagged across your attempts</Text>
           <View style={styles.pills}>
             {Object.entries(data.detection_counts)
               .sort((a, b) => b[1] - a[1])
@@ -293,6 +294,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginTop: spacing.sm,
   },
+  sectionCaption: { fontSize: 12, color: colors.textFaint, marginTop: -spacing.xs },
 
   card: {
     backgroundColor: colors.card,
