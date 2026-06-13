@@ -9,10 +9,10 @@ import type { Challenge } from '@/types/api';
 
 const META: Record<string, { label: string; blurb: string }> = {
   coach: { label: 'Live Coach', blurb: 'Speak freely with real-time pacing, clarity & filler nudges' },
-  scenario: { label: 'Scenario Gym', blurb: 'Hold a live conversation with an AI persona' },
-  thought: { label: 'Thought Gym', blurb: 'Sharpen reasoning and idea generation' },
-  structure: { label: 'Structure Gym', blurb: 'Organize ideas with proven frameworks' },
-  speaking: { label: 'Speaking Gym', blurb: 'Deliver with clarity and confidence' },
+  scenario: { label: 'Scenario', blurb: 'Hold a live conversation with an AI persona' },
+  thought: { label: 'Thought', blurb: 'Sharpen reasoning and idea generation' },
+  structure: { label: 'Structure', blurb: 'Organize ideas with proven frameworks' },
+  speaking: { label: 'Speaking', blurb: 'Deliver with clarity and confidence' },
   text: { label: 'Text Lab', blurb: 'Train reading and vocabulary — no mic needed' },
 };
 

@@ -36,7 +36,7 @@ export function ScoreCard({ stage, score, summary, dimensions, previousScore }: 
         <Text style={styles.stage}>{STAGE_LABELS[stage] ?? stage}</Text>
         <View style={styles.scoreRow}>
           {delta !== null && (
-            <Text style={[styles.delta, { color: delta >= 0 ? c.success : c.danger }]}>
+            <Text style={[styles.delta, { color: delta >= 0 ? c.success : c.warning }]}>
               {delta >= 0 ? '▲' : '▼'} {Math.abs(delta).toFixed(1)}
             </Text>
           )}

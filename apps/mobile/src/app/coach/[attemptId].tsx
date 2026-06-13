@@ -14,7 +14,7 @@ type Phase = 'connecting' | 'coaching' | 'finishing' | 'error';
 function meterColor(c: AppColors, v: number): string {
   if (v >= 70) return c.success;
   if (v >= 45) return c.textSecondary;
-  return c.danger;
+  return c.warning;
 }
 
 function Meter({ label, value }: { label: string; value: number }) {

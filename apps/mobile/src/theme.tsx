@@ -18,7 +18,8 @@ export type AppColors = {
   primaryMuted: string;
   onPrimary: string; // text/icon on a primary-filled surface
   success: string;
-  warning: string;
+  warning: string; // gold — "needs improvement / caution" accent
+  warningSoft: string; // tinted warning background (badges, pills)
   danger: string;
   dangerSoft: string; // tinted danger background (badges, pills)
   progressTrack: string;
@@ -42,7 +43,8 @@ export const lightColors: AppColors = {
   primaryMuted: '#DDEBE3',
   onPrimary: '#FFFFFF',
   success: '#3E7C59',
-  warning: '#B7791F',
+  warning: '#9F7A2E',
+  warningSoft: '#F2E8D2',
   danger: '#C94C4C',
   dangerSoft: '#F6E1E1',
   progressTrack: '#DDEBE3',
@@ -66,7 +68,8 @@ export const darkColors: AppColors = {
   primaryMuted: '#1E3A2B',
   onPrimary: '#0B0F0D',
   success: '#5AAE7F',
-  warning: '#E0A83E',
+  warning: '#D4B15A',
+  warningSoft: '#2E2716',
   danger: '#FF7474',
   dangerSoft: '#3A1F1F',
   progressTrack: '#22352B',
@@ -82,7 +85,7 @@ export const radius = { sm: 10, md: 14, lg: 20, pill: 999 };
 export function scoreColor(c: AppColors, score: number): string {
   if (score >= 7) return c.success;
   if (score >= 5) return c.textSecondary;
-  return c.danger;
+  return c.warning;
 }
 
 export type ThemeMode = 'light' | 'dark' | 'system';

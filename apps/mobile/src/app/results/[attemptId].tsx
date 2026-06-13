@@ -155,7 +155,7 @@ export default function ResultsScreen() {
               ))}
             </View>
             <View style={[styles.listCard, { flex: 1 }]}>
-              <Text style={[styles.listTitle, { color: c.danger }]}>Weaknesses</Text>
+              <Text style={[styles.listTitle, { color: c.warning }]}>Weaknesses</Text>
               {report.weaknesses.map((w, i) => (
                 <Text key={i} style={styles.listItem}>• {w}</Text>
               ))}
@@ -171,7 +171,7 @@ export default function ResultsScreen() {
           )}
           {report.worst_sentence && (
             <View style={styles.sentenceCard}>
-              <Text style={[styles.listTitle, { color: c.danger }]}>Weakest sentence</Text>
+              <Text style={[styles.listTitle, { color: c.warning }]}>Weakest sentence</Text>
               <Text style={styles.sentenceQuote}>“{report.worst_sentence.text}”</Text>
               <Text style={styles.sentenceReason}>{report.worst_sentence.reason}</Text>
             </View>
@@ -254,7 +254,7 @@ function makeStyles(c: AppColors) {
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
-  detectionText: { color: c.danger, fontSize: 12, fontWeight: '600' },
+  detectionText: { color: c.warning, fontSize: 12, fontWeight: '600' },
   twoCol: { flexDirection: 'row', gap: spacing.sm },
   listCard: {
     backgroundColor: c.surface,

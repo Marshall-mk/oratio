@@ -65,7 +65,7 @@ function Delta({ value, suffix }: { value: number; suffix?: string }) {
   if (value === 0) return null;
   const up = value > 0;
   return (
-    <Text style={{ fontSize: 12, fontWeight: '700', color: up ? c.success : c.danger }}>
+    <Text style={{ fontSize: 12, fontWeight: '700', color: up ? c.success : c.warning }}>
       {up ? '▲' : '▼'} {Math.abs(value)}
       {suffix}
     </Text>
@@ -132,13 +132,11 @@ export default function ProgressScreen() {
                   <View style={styles.meterTrack}>
                     <View style={[styles.meterFill, { width: `${pct}%`, backgroundColor: color }]} />
                   </View>
-                  <View style={styles.stageMeta}>
-                    <Text style={styles.metaDim}>
-                      avg {s.average?.toFixed(1) ?? '—'} · {s.points.length}{' '}
-                      {s.points.length === 1 ? 'attempt' : 'attempts'}
-                    </Text>
-                    {s.delta_vs_first != null && <Delta value={s.delta_vs_first} suffix=" since start" />}
-                  </View>
+                  {s.delta_vs_first != null && (
+                    <View style={styles.stageMeta}>
+                      <Delta value={s.delta_vs_first} suffix=" since start" />
+                    </View>
+                  )}
                   {s.points.length > 1 && (
                     <View style={styles.spark}>
                       <Sparkline points={s.points} color={color} />
@@ -181,11 +179,11 @@ export default function ProgressScreen() {
             ))}
           </View>
           <View style={[styles.card, styles.dimCard]}>
-            <Text style={[styles.dimHeader, { color: c.danger }]}>Work on</Text>
+            <Text style={[styles.dimHeader, { color: c.warning }]}>Work on</Text>
             {data.weaknesses.map((d, i) => (
               <View key={i} style={styles.dimRow}>
                 <Text style={styles.dimName} numberOfLines={1}>{d.dimension}</Text>
-                <Text style={[styles.dimScore, { color: c.danger }]}>{d.average.toFixed(1)}</Text>
+                <Text style={[styles.dimScore, { color: c.warning }]}>{d.average.toFixed(1)}</Text>
               </View>
             ))}
           </View>
@@ -337,10 +335,10 @@ function makeStyles(c: AppColors) {
   },
   pillText: { color: c.textPrimary, fontSize: 13, fontWeight: '600', textTransform: 'capitalize' },
   pillCount: {
-    color: c.danger,
+    color: c.warning,
     fontSize: 12,
     fontWeight: '800',
-    backgroundColor: c.dangerSoft,
+    backgroundColor: c.warningSoft,
     borderRadius: radius.pill,
     paddingHorizontal: 6,
     overflow: 'hidden',

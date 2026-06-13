@@ -19,10 +19,10 @@ interface Category {
 
 const CATEGORIES: Category[] = [
   { key: 'coach', label: 'Live Coach', blurb: 'Real-time coaching', icon: 'pulse' },
-  { key: 'scenario', label: 'Scenario Gym', blurb: 'Roleplay with AI', icon: 'people' },
-  { key: 'thought', label: 'Thought Gym', blurb: 'Reasoning & ideas', icon: 'bulb' },
-  { key: 'structure', label: 'Structure Gym', blurb: 'Organize ideas', icon: 'git-branch' },
-  { key: 'speaking', label: 'Speaking Gym', blurb: 'Clarity & delivery', icon: 'megaphone' },
+  { key: 'scenario', label: 'Scenario', blurb: 'Roleplay with AI', icon: 'people' },
+  { key: 'thought', label: 'Thought', blurb: 'Reasoning & ideas', icon: 'bulb' },
+  { key: 'structure', label: 'Structure', blurb: 'Organize ideas', icon: 'git-branch' },
+  { key: 'speaking', label: 'Speaking', blurb: 'Clarity & delivery', icon: 'megaphone' },
   { key: 'text', label: 'Text Lab', blurb: 'Reading & vocab', icon: 'book' },
 ];
 
