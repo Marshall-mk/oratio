@@ -131,3 +131,6 @@ class LiveTranscriber:
     @property
     def full_text(self) -> str:
         return "".join(s.text for s in self.segments).strip()
+
+    def elapsed_ms(self) -> int:
+        return int((time.monotonic() - self._started_at) * 1000) if self._started_at else 0

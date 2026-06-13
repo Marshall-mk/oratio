@@ -15,11 +15,19 @@ interface AttemptOut {
   status: string;
 }
 
+type Mode = 'monologue' | 'roleplay' | 'live_coach';
+
+function screenFor(mode: Mode): '/roleplay/[attemptId]' | '/coach/[attemptId]' | '/session/[attemptId]' {
+  if (mode === 'roleplay') return '/roleplay/[attemptId]';
+  if (mode === 'live_coach') return '/coach/[attemptId]';
+  return '/session/[attemptId]';
+}
+
 /** Create a session + first attempt, then open the right screen for the mode. */
 export function useStartSession() {
   const router = useRouter();
   return useMutation({
-    mutationFn: async (input: { challengeId: string; mode: 'monologue' | 'roleplay' }) => {
+    mutationFn: async (input: { challengeId: string; mode: Mode }) => {
       const session = await api<SessionOut>('/sessions', {
         method: 'POST',
         body: JSON.stringify({ challenge_id: input.challengeId }),
@@ -28,7 +36,7 @@ export function useStartSession() {
     },
     onSuccess: (attempt, input) => {
       router.push({
-        pathname: input.mode === 'roleplay' ? '/roleplay/[attemptId]' : '/session/[attemptId]',
+        pathname: screenFor(input.mode),
         params: { attemptId: attempt.id, challengeId: input.challengeId },
       });
     },
@@ -39,14 +47,11 @@ export function useStartSession() {
 export function useRetryAttempt() {
   const router = useRouter();
   return useMutation({
-    mutationFn: async (input: {
-      sessionId: string;
-      challengeId: string;
-      mode: 'monologue' | 'roleplay';
-    }) => api<AttemptOut>(`/sessions/${input.sessionId}/attempts`, { method: 'POST' }),
+    mutationFn: async (input: { sessionId: string; challengeId: string; mode: Mode }) =>
+      api<AttemptOut>(`/sessions/${input.sessionId}/attempts`, { method: 'POST' }),
     onSuccess: (attempt, input) => {
       router.replace({
-        pathname: input.mode === 'roleplay' ? '/roleplay/[attemptId]' : '/session/[attemptId]',
+        pathname: screenFor(input.mode),
         params: { attemptId: attempt.id, challengeId: input.challengeId },
       });
     },

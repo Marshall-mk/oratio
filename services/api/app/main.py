@@ -7,6 +7,7 @@ from app.db import dispose_engine, init_engine
 from app.routers import (
     challenges,
     live,
+    live_coach_ws,
     profiles,
     progress,
     roleplay_ws,
@@ -31,6 +32,7 @@ app.include_router(progress.router)
 app.include_router(text_lab.router)
 app.include_router(live.router)
 app.include_router(roleplay_ws.router)
+app.include_router(live_coach_ws.router)
 
 
 @app.get("/health")

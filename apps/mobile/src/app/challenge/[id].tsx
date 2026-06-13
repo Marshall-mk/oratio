@@ -81,7 +81,13 @@ export default function ChallengeDetail() {
       </View>
 
       <Button
-        title={challenge.mode === 'roleplay' ? 'Start conversation' : 'Start speaking'}
+        title={
+          challenge.mode === 'roleplay'
+            ? 'Start conversation'
+            : challenge.mode === 'live_coach'
+              ? 'Start coaching'
+              : 'Start speaking'
+        }
         onPress={() => startSession.mutate({ challengeId: challenge.id, mode: challenge.mode })}
         loading={startSession.isPending}
       />

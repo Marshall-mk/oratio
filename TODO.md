@@ -105,12 +105,15 @@ Legend: ✅ done · 🚧 in progress · ⬜ not started · 🙋 needs user actio
 - ✅ Analytics dashboard: IQ w/ delta, speaking-metrics grid, strengths/work-on, habits-to-watch pills, stage trendlines (comprehension + vocabulary + social included)
 - ✅ E2E verified: metrics persisted, memory stored+retrieved across two attempts, analytics populated; dashboard rendered in sim
 
-## M10 — Live Coach (= PRD Phase 9)
+## M10 — Live Coach (= PRD Phase 9) ✅
 *Builds directly on M2 streaming + M9 metrics, computed in real time.*
-- ⬜ Real-time detectors over the live transcript stream: speaking too fast (WPM window), filler words, jargon, rambling (sentence-length drift)
-- ⬜ Intervention nudges pushed over the existing WS (slow down / clarify / give an example / summarize)
-- ⬜ Live meters UI: confidence, clarity, pacing
-- ⬜ Modes: presentation, interview, meeting, research defense
+- ✅ migration 0005: `live_coach` mode + `coach` category; 4 coach challenges seeded (presentation, interview, meeting, research defense) with per-mode thresholds
+- ✅ `live_coach.py`: real-time detectors over the transcript stream — pacing (rolling WPM window), filler rate, rambling (time since last sentence) — with per-kind nudge cooldowns
+- ✅ Intervention nudges pushed over WS (slow down / watch fillers / land your point)
+- ✅ Live meters (pacing/clarity/confidence, 0-100) streamed every 2s
+- ✅ WS `/ws/live-coach`: transcribe + coach overlay; on stop persists transcript + runs normal evaluation (feeds analytics + memory twin)
+- ✅ Mobile: Live Coach home section, coach session screen (live meters bars, transient nudge banner, captions, coach summary → results)
+- ✅ E2E verified: nudges fired, 11 meter updates, summary, evaluation completed; screens rendered in sim
 
 ## Deferred (deprioritized per user, June 12 2026)
 - Phase 0A Research Communication Trainer · Phase 10 Replay · Phase 11 Audience Switching · Phase 12 Thesis Defense Simulator · Phase 13 Thought Mapper

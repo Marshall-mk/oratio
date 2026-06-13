@@ -13,9 +13,10 @@ const CATEGORY_META: Record<Challenge['category'], { label: string; blurb: strin
   structure: { label: 'Structure Gym', blurb: 'Organize ideas with proven frameworks' },
   speaking: { label: 'Speaking Gym', blurb: 'Deliver with clarity and confidence' },
   scenario: { label: 'Scenario Gym', blurb: 'Live roleplay with an AI persona' },
+  coach: { label: 'Live Coach', blurb: 'Real-time nudges while you speak' },
 };
 
-const CATEGORY_ORDER = ['scenario', 'thought', 'structure', 'speaking'] as const;
+const CATEGORY_ORDER = ['coach', 'scenario', 'thought', 'structure', 'speaking'] as const;
 
 export default function Home() {
   const router = useRouter();
