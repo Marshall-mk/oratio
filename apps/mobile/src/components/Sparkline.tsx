@@ -22,7 +22,7 @@ export function Sparkline({ points, color }: { points: number[]; color: string }
 function makeStyles(c: AppColors) {
   return StyleSheet.create({
     row: { flexDirection: 'row', alignItems: 'flex-end', height: 48, gap: 3 },
-    slot: { flex: 1, height: '100%', justifyContent: 'flex-end', backgroundColor: c.track, borderRadius: 3 },
+    slot: { flex: 1, height: '100%', justifyContent: 'flex-end', backgroundColor: c.progressTrack, borderRadius: 3 },
     bar: { borderRadius: 3, minHeight: 3 },
   });
 }

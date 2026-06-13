@@ -37,7 +37,7 @@ export default function VocabularyLab() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: c.bg }}
+      style={{ flex: 1, backgroundColor: c.background }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.container}>
         <BackButton onPress={() => router.back()} />
@@ -61,7 +61,7 @@ export default function VocabularyLab() {
         <TextInput
           style={[styles.input, styles.textArea]}
           placeholder="Enter your sentence or paragraph…"
-          placeholderTextColor={c.textDim}
+          placeholderTextColor={c.textSecondary}
           value={text}
           onChangeText={setText}
           multiline
@@ -111,56 +111,56 @@ export default function VocabularyLab() {
 function makeStyles(c: AppColors) {
   return StyleSheet.create({
   container: { padding: spacing.lg, paddingTop: 70, paddingBottom: 60, gap: spacing.md },
-  back: { color: c.textDim, fontSize: 16 },
-  title: { fontSize: 28, fontWeight: '800', color: c.text },
-  subtitle: { fontSize: 14, color: c.textDim, lineHeight: 20 },
-  sectionLabel: { color: c.accent, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
+  back: { color: c.textSecondary, fontSize: 16 },
+  title: { fontSize: 28, fontWeight: '800', color: c.textPrimary },
+  subtitle: { fontSize: 14, color: c.textSecondary, lineHeight: 20 },
+  sectionLabel: { color: c.primary, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
   drills: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   drill: {
     width: '48%',
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: 12,
     padding: spacing.md,
     gap: 2,
   },
-  drillActive: { borderColor: c.accent, backgroundColor: c.accentSoft },
-  drillLabel: { color: c.textDim, fontSize: 14, fontWeight: '700' },
-  drillLabelActive: { color: c.text },
-  drillHint: { color: c.textDim, fontSize: 11 },
+  drillActive: { borderColor: c.primary, backgroundColor: c.primaryMuted },
+  drillLabel: { color: c.textSecondary, fontSize: 14, fontWeight: '700' },
+  drillLabelActive: { color: c.textPrimary },
+  drillHint: { color: c.textSecondary, fontSize: 11 },
   input: {
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: 12,
     padding: 14,
-    color: c.text,
+    color: c.textPrimary,
     fontSize: 16,
   },
   textArea: { minHeight: 120, textAlignVertical: 'top' },
   error: { color: c.danger },
   scoreCard: {
-    backgroundColor: c.accentSoft,
+    backgroundColor: c.primaryMuted,
     borderRadius: 14,
     padding: spacing.lg,
     alignItems: 'center',
     gap: spacing.sm,
   },
-  scoreBig: { fontSize: 32, fontWeight: '800', color: c.text },
+  scoreBig: { fontSize: 32, fontWeight: '800', color: c.textPrimary },
   section: {
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: 14,
     padding: spacing.md,
     gap: spacing.sm,
   },
-  improved: { color: c.text, fontSize: 16, lineHeight: 24 },
+  improved: { color: c.textPrimary, fontSize: 16, lineHeight: 24 },
   change: { gap: 2, marginBottom: spacing.sm },
   changeLine: { fontSize: 14, lineHeight: 20 },
   original: { color: c.danger, textDecorationLine: 'line-through' },
   replacement: { color: c.success, fontWeight: '600' },
-  reason: { color: c.textDim, fontSize: 13 },
+  reason: { color: c.textSecondary, fontSize: 13 },
 });
 }

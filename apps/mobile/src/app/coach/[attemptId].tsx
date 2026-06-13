@@ -13,7 +13,7 @@ type Phase = 'connecting' | 'coaching' | 'finishing' | 'error';
 
 function meterColor(c: AppColors, v: number): string {
   if (v >= 70) return c.success;
-  if (v >= 45) return c.textDim;
+  if (v >= 45) return c.textSecondary;
   return c.danger;
 }
 
@@ -137,8 +137,8 @@ export default function CoachScreen() {
 
       <View style={styles.nudgeSlot}>
         {nudge && (
-          <View style={[styles.nudge, { borderColor: c.accent }]}>
-            <Text style={[styles.nudgeText, { color: c.accent }]}>
+          <View style={[styles.nudge, { borderColor: c.primary }]}>
+            <Text style={[styles.nudgeText, { color: c.primary }]}>
               {nudge.text}
             </Text>
           </View>
@@ -177,28 +177,28 @@ export default function CoachScreen() {
 
 function makeStyles(c: AppColors) {
   return StyleSheet.create({
-  container: { flex: 1, backgroundColor: c.bg, padding: spacing.lg, paddingTop: 70, gap: spacing.md },
-  mode: { fontSize: 20, fontWeight: '800', color: c.text },
+  container: { flex: 1, backgroundColor: c.background, padding: spacing.lg, paddingTop: 70, gap: spacing.md },
+  mode: { fontSize: 20, fontWeight: '800', color: c.textPrimary },
   meters: { gap: spacing.sm },
   meter: { gap: 4 },
   meterHeader: { flexDirection: 'row', justifyContent: 'space-between' },
-  meterLabel: { color: c.textDim, fontSize: 13, fontWeight: '600' },
+  meterLabel: { color: c.textSecondary, fontSize: 13, fontWeight: '600' },
   meterValue: { fontSize: 13, fontWeight: '800' },
-  meterTrack: { height: 8, borderRadius: 4, backgroundColor: c.card },
+  meterTrack: { height: 8, borderRadius: 4, backgroundColor: c.surface },
   meterFill: { height: 8, borderRadius: 4 },
-  wpm: { color: c.textDim, fontSize: 12, textAlign: 'right' },
+  wpm: { color: c.textSecondary, fontSize: 12, textAlign: 'right' },
   nudgeSlot: { minHeight: 52, justifyContent: 'center' },
-  nudge: { borderWidth: 1, borderRadius: 12, padding: spacing.md, backgroundColor: c.card },
+  nudge: { borderWidth: 1, borderRadius: 12, padding: spacing.md, backgroundColor: c.surface },
   nudgeText: { fontSize: 15, fontWeight: '700', textAlign: 'center' },
   transcriptBox: {
     flex: 1,
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: 14,
   },
-  transcript: { color: c.text, fontSize: 16, lineHeight: 24 },
-  hint: { color: c.textDim, fontSize: 15, fontStyle: 'italic' },
+  transcript: { color: c.textPrimary, fontSize: 16, lineHeight: 24 },
+  hint: { color: c.textSecondary, fontSize: 15, fontStyle: 'italic' },
   stopButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -212,6 +212,6 @@ function makeStyles(c: AppColors) {
   stopLabel: { color: '#fff', fontSize: 17, fontWeight: '700' },
   errorBox: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.md },
   error: { color: c.danger, textAlign: 'center' },
-  errorAction: { color: c.accent, fontWeight: '600' },
+  errorAction: { color: c.primary, fontWeight: '600' },
 });
 }

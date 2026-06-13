@@ -86,24 +86,24 @@ function Row({ title, meta, onPress }: { title: string; meta: string; onPress: (
 
 function makeStyles(c: AppColors) {
   return StyleSheet.create({
-  screen: { backgroundColor: c.bg },
+  screen: { backgroundColor: c.background },
   container: { padding: spacing.lg, paddingTop: 70, paddingBottom: 40, gap: spacing.sm },
-  back: { color: c.textDim, fontSize: 16 },
-  title: { fontSize: 28, fontWeight: '800', color: c.text, letterSpacing: -0.5 },
-  blurb: { fontSize: 14, color: c.textDim, marginBottom: spacing.sm },
+  back: { color: c.textSecondary, fontSize: 16 },
+  title: { fontSize: 28, fontWeight: '800', color: c.textPrimary, letterSpacing: -0.5 },
+  blurb: { fontSize: 14, color: c.textSecondary, marginBottom: spacing.sm },
   list: { gap: spacing.sm, marginTop: spacing.xs },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: radius.md,
     padding: spacing.md,
     gap: spacing.sm,
   },
-  rowTitle: { fontSize: 16, fontWeight: '600', color: c.text },
-  rowMeta: { fontSize: 12, color: c.textFaint, marginTop: 3, textTransform: 'capitalize' },
-  chevron: { fontSize: 24, color: c.textDim },
+  rowTitle: { fontSize: 16, fontWeight: '600', color: c.textPrimary },
+  rowMeta: { fontSize: 12, color: c.textMuted, marginTop: 3, textTransform: 'capitalize' },
+  chevron: { fontSize: 24, color: c.textSecondary },
 });
 }

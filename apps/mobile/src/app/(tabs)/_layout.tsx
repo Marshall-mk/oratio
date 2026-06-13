@@ -10,10 +10,10 @@ export default function TabsLayout() {
       initialRouteName="progress"
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: c.accent,
-        tabBarInactiveTintColor: c.textDim,
+        tabBarActiveTintColor: c.tabActive,
+        tabBarInactiveTintColor: c.tabInactive,
         tabBarStyle: {
-          backgroundColor: c.card,
+          backgroundColor: c.surface,
           borderTopColor: c.border,
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },

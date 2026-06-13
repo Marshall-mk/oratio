@@ -31,7 +31,7 @@ export function Button({ title, onPress, disabled, loading, variant = 'primary',
         style,
       ]}>
       {loading ? (
-        <ActivityIndicator color={isPrimary ? c.onAccent : isDanger ? c.danger : c.accent} />
+        <ActivityIndicator color={isPrimary ? c.onPrimary : isDanger ? c.danger : c.primary} />
       ) : (
         <Text style={[styles.text, isDanger ? styles.dangerText : !isPrimary && styles.ghostText]}>
           {title}
@@ -50,13 +50,13 @@ function makeStyles(c: AppColors) {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    primary: { backgroundColor: c.accent },
+    primary: { backgroundColor: c.primary },
     ghost: { backgroundColor: 'transparent', borderWidth: 1, borderColor: c.border },
     danger: { backgroundColor: 'transparent', borderWidth: 1, borderColor: c.danger },
     disabled: { opacity: 0.4 },
     pressed: { opacity: 0.8 },
-    text: { color: c.onAccent, fontSize: 16, fontWeight: '600' },
-    ghostText: { color: c.text },
+    text: { color: c.onPrimary, fontSize: 16, fontWeight: '600' },
+    ghostText: { color: c.textPrimary },
     dangerText: { color: c.danger },
   });
 }

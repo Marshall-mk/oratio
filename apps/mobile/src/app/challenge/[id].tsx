@@ -31,13 +31,13 @@ export default function ChallengeDetail() {
   if (isLoading || !challenge) {
     return (
       <View style={styles.center}>
-        <Text style={{ color: c.textDim }}>Loading…</Text>
+        <Text style={{ color: c.textSecondary }}>Loading…</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView style={{ backgroundColor: c.bg }} contentContainerStyle={styles.container}>
+    <ScrollView style={{ backgroundColor: c.background }} contentContainerStyle={styles.container}>
       <BackButton onPress={() => router.back()} />
 
       <Text style={styles.category}>
@@ -98,40 +98,40 @@ export default function ChallengeDetail() {
 
 function makeStyles(c: AppColors) {
   return StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: c.bg },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: c.background },
   container: { padding: spacing.lg, paddingTop: 70, gap: spacing.md },
-  back: { color: c.textDim, fontSize: 16, marginBottom: spacing.sm },
-  category: { color: c.accent, fontWeight: '700', fontSize: 13, textTransform: 'capitalize' },
-  title: { fontSize: 28, fontWeight: '800', color: c.text },
+  back: { color: c.textSecondary, fontSize: 16, marginBottom: spacing.sm },
+  category: { color: c.primary, fontWeight: '700', fontSize: 13, textTransform: 'capitalize' },
+  title: { fontSize: 28, fontWeight: '800', color: c.textPrimary },
   promptCard: {
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: 14,
     padding: spacing.md,
     gap: spacing.sm,
   },
-  promptLabel: { color: c.textDim, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 },
-  prompt: { color: c.text, fontSize: 17, lineHeight: 25 },
+  promptLabel: { color: c.textSecondary, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 },
+  prompt: { color: c.textPrimary, fontSize: 17, lineHeight: 25 },
   hintCard: {
-    backgroundColor: c.accentSoft,
+    backgroundColor: c.primaryMuted,
     borderRadius: 14,
     padding: spacing.md,
     gap: 4,
   },
-  hintLabel: { color: c.text, fontWeight: '700', fontSize: 13 },
-  hint: { color: c.textDim, fontSize: 14 },
+  hintLabel: { color: c.textPrimary, fontWeight: '700', fontSize: 13 },
+  hint: { color: c.textSecondary, fontSize: 14 },
   metaRow: { flexDirection: 'row', gap: spacing.sm },
   metaBox: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: 14,
     padding: spacing.md,
   },
-  metaValue: { fontSize: 22, fontWeight: '800', color: c.text },
-  metaLabel: { fontSize: 12, color: c.textDim, marginTop: 2 },
+  metaValue: { fontSize: 22, fontWeight: '800', color: c.textPrimary },
+  metaLabel: { fontSize: 12, color: c.textSecondary, marginTop: 2 },
 });
 }

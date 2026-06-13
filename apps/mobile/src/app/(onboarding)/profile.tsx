@@ -23,28 +23,28 @@ export default function OnboardingProfile() {
         <TextInput
           style={styles.input}
           placeholder="What should we call you?"
-          placeholderTextColor={c.textDim}
+          placeholderTextColor={c.textSecondary}
           value={displayName}
           onChangeText={(v) => set({ displayName: v })}
         />
         <TextInput
           style={styles.input}
           placeholder="Profession (e.g. PhD student, founder)"
-          placeholderTextColor={c.textDim}
+          placeholderTextColor={c.textSecondary}
           value={profession}
           onChangeText={(v) => set({ profession: v })}
         />
         <TextInput
           style={styles.input}
           placeholder="Industry or field"
-          placeholderTextColor={c.textDim}
+          placeholderTextColor={c.textSecondary}
           value={industry}
           onChangeText={(v) => set({ industry: v })}
         />
         <TextInput
           style={styles.input}
           placeholder="Education (optional)"
-          placeholderTextColor={c.textDim}
+          placeholderTextColor={c.textSecondary}
           value={education}
           onChangeText={(v) => set({ education: v })}
         />
@@ -62,16 +62,16 @@ export default function OnboardingProfile() {
 function makeStyles(c: AppColors) {
   return StyleSheet.create({
   container: { padding: spacing.lg, paddingTop: 80, gap: spacing.md },
-  step: { color: c.accent, fontWeight: '700', fontSize: 13 },
-  title: { fontSize: 28, fontWeight: '800', color: c.text },
-  subtitle: { fontSize: 15, color: c.textDim, marginBottom: spacing.md },
+  step: { color: c.primary, fontWeight: '700', fontSize: 13 },
+  title: { fontSize: 28, fontWeight: '800', color: c.textPrimary },
+  subtitle: { fontSize: 15, color: c.textSecondary, marginBottom: spacing.md },
   input: {
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: 12,
     padding: 14,
-    color: c.text,
+    color: c.textPrimary,
     fontSize: 16,
   },
 });

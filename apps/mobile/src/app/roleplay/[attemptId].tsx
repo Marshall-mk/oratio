@@ -184,23 +184,23 @@ export default function RoleplayScreen() {
 
 function makeStyles(c: AppColors) {
   return StyleSheet.create({
-  container: { flex: 1, backgroundColor: c.bg, padding: spacing.lg, paddingTop: 70, gap: spacing.md },
+  container: { flex: 1, backgroundColor: c.background, padding: spacing.lg, paddingTop: 70, gap: spacing.md },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  persona: { fontSize: 20, fontWeight: '800', color: c.text },
-  end: { color: c.accent, fontSize: 14, fontWeight: '700' },
+  persona: { fontSize: 20, fontWeight: '800', color: c.textPrimary },
+  end: { color: c.primary, fontSize: 14, fontWeight: '700' },
   thread: { flex: 1 },
   threadContent: { gap: spacing.sm, paddingVertical: spacing.sm },
   bubble: { maxWidth: '85%', borderRadius: 16, padding: spacing.md },
-  personaBubble: { backgroundColor: c.card, alignSelf: 'flex-start', borderBottomLeftRadius: 4 },
-  userBubble: { backgroundColor: c.accentSoft, alignSelf: 'flex-end', borderBottomRightRadius: 4 },
-  bubbleText: { color: c.text, fontSize: 15, lineHeight: 22 },
-  status: { color: c.textDim, fontSize: 13, fontStyle: 'italic', alignSelf: 'flex-start', marginTop: 4 },
+  personaBubble: { backgroundColor: c.surface, alignSelf: 'flex-start', borderBottomLeftRadius: 4 },
+  userBubble: { backgroundColor: c.primaryMuted, alignSelf: 'flex-end', borderBottomRightRadius: 4 },
+  bubbleText: { color: c.textPrimary, fontSize: 15, lineHeight: 22 },
+  status: { color: c.textSecondary, fontSize: 13, fontStyle: 'italic', alignSelf: 'flex-start', marginTop: 4 },
   micButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
-    backgroundColor: c.accent,
+    backgroundColor: c.primary,
     borderRadius: 14,
     paddingVertical: 16,
   },
@@ -209,6 +209,6 @@ function makeStyles(c: AppColors) {
   micLabel: { color: '#fff', fontSize: 16, fontWeight: '700' },
   errorBox: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.md },
   errorText: { color: c.danger, textAlign: 'center' },
-  errorAction: { color: c.accent, fontWeight: '600' },
+  errorAction: { color: c.primary, fontWeight: '600' },
 });
 }

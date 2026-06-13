@@ -27,10 +27,10 @@ function makeStyles(c: AppColors) {
       borderRadius: 20,
       borderWidth: 1,
       borderColor: c.border,
-      backgroundColor: c.card,
+      backgroundColor: c.surface,
     },
-    selected: { backgroundColor: c.accentSoft, borderColor: c.accent },
-    label: { color: c.textDim, fontSize: 14 },
-    labelSelected: { color: c.accent, fontWeight: '600' },
+    selected: { backgroundColor: c.primaryMuted, borderColor: c.primary },
+    label: { color: c.textSecondary, fontSize: 14 },
+    labelSelected: { color: c.primary, fontWeight: '600' },
   });
 }

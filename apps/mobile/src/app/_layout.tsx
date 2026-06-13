@@ -40,8 +40,8 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
   if (loading || (session && profile.isLoading)) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: c.bg }}>
-        <ActivityIndicator color={c.accent} />
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: c.background }}>
+        <ActivityIndicator color={c.primary} />
       </View>
     );
   }
@@ -52,13 +52,13 @@ function ThemedApp() {
   const { colors, resolved } = useTheme();
   const navTheme =
     resolved === 'dark'
-      ? { ...DarkTheme, colors: { ...DarkTheme.colors, background: colors.bg } }
-      : { ...DefaultTheme, colors: { ...DefaultTheme.colors, background: colors.bg } };
+      ? { ...DarkTheme, colors: { ...DarkTheme.colors, background: colors.background } }
+      : { ...DefaultTheme, colors: { ...DefaultTheme.colors, background: colors.background } };
 
   return (
     <NavThemeProvider value={navTheme}>
       <AuthGate>
-        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }} />
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }} />
       </AuthGate>
       <StatusBar style={resolved === 'dark' ? 'light' : 'dark'} />
     </NavThemeProvider>

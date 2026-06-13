@@ -69,7 +69,7 @@ export default function ReadingLab() {
   // ---- Input phase ----
   if (!exerciseId) {
     return (
-      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: c.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: c.background }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.container}>
           <BackButton onPress={() => router.back()} />
           <Text style={styles.title}>Reading Lab</Text>
@@ -79,14 +79,14 @@ export default function ReadingLab() {
           <TextInput
             style={styles.input}
             placeholder="Title (optional)"
-            placeholderTextColor={c.textDim}
+            placeholderTextColor={c.textSecondary}
             value={title}
             onChangeText={setTitle}
           />
           <TextInput
             style={[styles.input, styles.textArea]}
             placeholder="Paste the text here…"
-            placeholderTextColor={c.textDim}
+            placeholderTextColor={c.textSecondary}
             value={text}
             onChangeText={setText}
             multiline
@@ -108,7 +108,7 @@ export default function ReadingLab() {
   if (!exercise || exercise.status === 'generating') {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color={c.accent} />
+        <ActivityIndicator color={c.primary} />
         <Text style={styles.subtitle}>Building your study pack…</Text>
       </View>
     );
@@ -128,7 +128,7 @@ export default function ReadingLab() {
   const result = submit.data ?? (scored ? exercise : null);
 
   return (
-    <ScrollView style={{ backgroundColor: c.bg }} contentContainerStyle={styles.container}>
+    <ScrollView style={{ backgroundColor: c.background }} contentContainerStyle={styles.container}>
       <BackButton label="Gym" onPress={() => router.dismissTo('/gym')} />
       <Text style={styles.title}>{exercise.source_title ?? 'Study pack'}</Text>
 
@@ -227,64 +227,64 @@ function Section({ label, children }: { label: string; children: React.ReactNode
 function makeStyles(c: AppColors) {
   return StyleSheet.create({
   container: { padding: spacing.lg, paddingTop: 70, paddingBottom: 60, gap: spacing.md },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.md, backgroundColor: c.bg, padding: spacing.lg },
-  back: { color: c.textDim, fontSize: 16 },
-  title: { fontSize: 28, fontWeight: '800', color: c.text },
-  subtitle: { fontSize: 14, color: c.textDim, lineHeight: 20 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.md, backgroundColor: c.background, padding: spacing.lg },
+  back: { color: c.textSecondary, fontSize: 16 },
+  title: { fontSize: 28, fontWeight: '800', color: c.textPrimary },
+  subtitle: { fontSize: 14, color: c.textSecondary, lineHeight: 20 },
   input: {
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: 12,
     padding: 14,
-    color: c.text,
+    color: c.textPrimary,
     fontSize: 16,
   },
   textArea: { minHeight: 200, textAlignVertical: 'top' },
   error: { color: c.danger },
   section: {
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: 14,
     padding: spacing.md,
     gap: spacing.xs,
   },
-  sectionLabel: { color: c.accent, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
-  body: { color: c.text, fontSize: 15, lineHeight: 22 },
-  term: { color: c.text, fontSize: 15, fontWeight: '700' },
+  sectionLabel: { color: c.primary, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
+  body: { color: c.textPrimary, fontSize: 15, lineHeight: 22 },
+  term: { color: c.textPrimary, fontSize: 15, fontWeight: '700' },
   argNode: { marginBottom: spacing.sm },
-  claim: { color: c.text, fontSize: 15, fontWeight: '600' },
-  support: { color: c.textDim, fontSize: 14, lineHeight: 20, marginTop: 2 },
-  quizHeader: { fontSize: 19, fontWeight: '800', color: c.text, marginTop: spacing.sm },
+  claim: { color: c.textPrimary, fontSize: 15, fontWeight: '600' },
+  support: { color: c.textSecondary, fontSize: 14, lineHeight: 20, marginTop: 2 },
+  quizHeader: { fontSize: 19, fontWeight: '800', color: c.textPrimary, marginTop: spacing.sm },
   quizCard: {
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: 14,
     padding: spacing.md,
     gap: spacing.sm,
   },
-  question: { color: c.text, fontSize: 15, fontWeight: '600', lineHeight: 21 },
+  question: { color: c.textPrimary, fontSize: 15, fontWeight: '600', lineHeight: 21 },
   option: {
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: 10,
     padding: 12,
-    backgroundColor: c.bg,
+    backgroundColor: c.background,
   },
-  optionSelected: { borderColor: c.accent, backgroundColor: c.accentSoft },
-  optionCorrect: { borderColor: c.success, backgroundColor: c.accentSoft },
+  optionSelected: { borderColor: c.primary, backgroundColor: c.primaryMuted },
+  optionCorrect: { borderColor: c.success, backgroundColor: c.primaryMuted },
   optionWrong: { borderColor: c.danger, backgroundColor: c.dangerSoft },
-  optionText: { color: c.text, fontSize: 14 },
-  explanation: { color: c.textDim, fontSize: 13, fontStyle: 'italic', lineHeight: 19 },
+  optionText: { color: c.textPrimary, fontSize: 14 },
+  explanation: { color: c.textSecondary, fontSize: 13, fontStyle: 'italic', lineHeight: 19 },
   scoreCard: {
-    backgroundColor: c.accentSoft,
+    backgroundColor: c.primaryMuted,
     borderRadius: 14,
     padding: spacing.lg,
     alignItems: 'center',
     gap: spacing.sm,
   },
-  scoreBig: { fontSize: 28, fontWeight: '800', color: c.text },
+  scoreBig: { fontSize: 28, fontWeight: '800', color: c.textPrimary },
 });
 }

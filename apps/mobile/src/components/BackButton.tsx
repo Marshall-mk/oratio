@@ -13,7 +13,7 @@ export function BackButton({ label = 'Back', onPress }: { label?: string; onPres
       onPress={onPress}
       hitSlop={16}
       style={({ pressed }) => [styles.btn, pressed && { opacity: 0.6 }]}>
-      <Ionicons name="chevron-back" size={24} color={c.accent} />
+      <Ionicons name="chevron-back" size={24} color={c.primary} />
       <Text style={styles.label}>{label}</Text>
     </Pressable>
   );
@@ -31,6 +31,6 @@ function makeStyles(c: AppColors) {
       marginLeft: -4,
       marginBottom: spacing.xs,
     },
-    label: { color: c.accent, fontSize: 17, fontWeight: '600' },
+    label: { color: c.primary, fontSize: 17, fontWeight: '600' },
   });
 }

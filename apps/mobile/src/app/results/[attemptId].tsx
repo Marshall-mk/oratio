@@ -80,7 +80,7 @@ export default function ResultsScreen() {
   );
 
   return (
-    <ScrollView style={{ backgroundColor: c.bg }} contentContainerStyle={styles.container}>
+    <ScrollView style={{ backgroundColor: c.background }} contentContainerStyle={styles.container}>
       <BackButton label="Home" onPress={() => router.dismissTo('/progress')} />
 
       <View style={styles.headerRow}>
@@ -100,7 +100,7 @@ export default function ResultsScreen() {
 
       {evaluating && (
         <View style={styles.evaluatingBox}>
-          <ActivityIndicator color={c.accent} />
+          <ActivityIndicator color={c.primary} />
           <Text style={styles.evaluatingText}>Evaluating your thinking, structure, and delivery…</Text>
         </View>
       )}
@@ -179,7 +179,7 @@ export default function ResultsScreen() {
 
           {report.suggested_rewrite && (
             <View style={styles.sentenceCard}>
-              <Text style={[styles.listTitle, { color: c.accent }]}>Suggested rewrite</Text>
+              <Text style={[styles.listTitle, { color: c.primary }]}>Suggested rewrite</Text>
               <Text style={styles.sentenceQuote}>{report.suggested_rewrite}</Text>
             </View>
           )}
@@ -229,27 +229,27 @@ export default function ResultsScreen() {
 function makeStyles(c: AppColors) {
   return StyleSheet.create({
   container: { padding: spacing.lg, paddingTop: 70, paddingBottom: 60, gap: spacing.md },
-  back: { color: c.textDim, fontSize: 16 },
+  back: { color: c.textSecondary, fontSize: 16 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
-  title: { fontSize: 28, fontWeight: '800', color: c.text },
-  overall: { fontSize: 30, fontWeight: '800', color: c.accent },
-  overallMax: { fontSize: 15, color: c.textDim, fontWeight: '600' },
-  meta: { fontSize: 14, color: c.textDim },
+  title: { fontSize: 28, fontWeight: '800', color: c.textPrimary },
+  overall: { fontSize: 30, fontWeight: '800', color: c.primary },
+  overallMax: { fontSize: 15, color: c.textSecondary, fontWeight: '600' },
+  meta: { fontSize: 14, color: c.textSecondary },
   evaluatingBox: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xl },
-  evaluatingText: { color: c.textDim, fontSize: 14 },
-  banner: { backgroundColor: c.accentSoft, borderRadius: 12, padding: spacing.md },
-  bannerText: { color: c.text, fontSize: 14 },
+  evaluatingText: { color: c.textSecondary, fontSize: 14 },
+  banner: { backgroundColor: c.primaryMuted, borderRadius: 12, padding: spacing.md },
+  bannerText: { color: c.textPrimary, fontSize: 14 },
   diagnosisCard: {
-    backgroundColor: c.accentSoft,
+    backgroundColor: c.primaryMuted,
     borderRadius: 14,
     padding: spacing.md,
     gap: spacing.sm,
   },
-  diagnosisLabel: { color: c.accent, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
-  diagnosis: { color: c.text, fontSize: 16, lineHeight: 23, fontWeight: '600' },
+  diagnosisLabel: { color: c.primary, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
+  diagnosis: { color: c.textPrimary, fontSize: 16, lineHeight: 23, fontWeight: '600' },
   detections: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   detectionPill: {
-    backgroundColor: c.bg,
+    backgroundColor: c.background,
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -257,7 +257,7 @@ function makeStyles(c: AppColors) {
   detectionText: { color: c.danger, fontSize: 12, fontWeight: '600' },
   twoCol: { flexDirection: 'row', gap: spacing.sm },
   listCard: {
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: 14,
@@ -265,36 +265,36 @@ function makeStyles(c: AppColors) {
     gap: 6,
   },
   listTitle: { fontSize: 13, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
-  listItem: { color: c.text, fontSize: 13, lineHeight: 19 },
+  listItem: { color: c.textPrimary, fontSize: 13, lineHeight: 19 },
   sentenceCard: {
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: 14,
     padding: spacing.md,
     gap: spacing.sm,
   },
-  sentenceQuote: { color: c.text, fontSize: 15, lineHeight: 22, fontStyle: 'italic' },
-  sentenceReason: { color: c.textDim, fontSize: 13, lineHeight: 19 },
+  sentenceQuote: { color: c.textPrimary, fontSize: 15, lineHeight: 22, fontStyle: 'italic' },
+  sentenceReason: { color: c.textSecondary, fontSize: 13, lineHeight: 19 },
   retryCard: {
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     borderWidth: 1,
-    borderColor: c.accent,
+    borderColor: c.primary,
     borderRadius: 14,
     padding: spacing.md,
     gap: spacing.sm,
   },
-  retryLabel: { color: c.accent, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
-  retryText: { color: c.text, fontSize: 15, lineHeight: 22 },
+  retryLabel: { color: c.primary, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
+  retryText: { color: c.textPrimary, fontSize: 15, lineHeight: 22 },
   card: {
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: 14,
     padding: spacing.md,
     gap: spacing.sm,
   },
-  cardLabel: { color: c.textDim, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 },
-  transcript: { color: c.text, fontSize: 15, lineHeight: 23 },
+  cardLabel: { color: c.textSecondary, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 },
+  transcript: { color: c.textPrimary, fontSize: 15, lineHeight: 23 },
 });
 }

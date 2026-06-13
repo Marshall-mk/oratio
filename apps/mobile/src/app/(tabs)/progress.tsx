@@ -121,7 +121,7 @@ export default function ProgressScreen() {
           <Text style={styles.sectionHeader}>By stage</Text>
           <View style={styles.card}>
             {stages.map((s, i) => {
-              const color = c.accent;
+              const color = c.progressFill;
               const pct = Math.max(4, Math.min(100, (s.latest ?? 0) * 10));
               return (
                 <View key={s.stage} style={[styles.stageRow, i > 0 && styles.stageDivider]}>
@@ -245,54 +245,54 @@ export default function ProgressScreen() {
 
 function makeStyles(c: AppColors) {
   return StyleSheet.create({
-  screen: { backgroundColor: c.bg },
+  screen: { backgroundColor: c.background },
   container: { padding: spacing.lg, paddingTop: 70, paddingBottom: 48, gap: spacing.md },
-  title: { fontSize: 30, fontWeight: '800', color: c.text, letterSpacing: -0.5 },
+  title: { fontSize: 30, fontWeight: '800', color: c.textPrimary, letterSpacing: -0.5 },
 
   hero: {
-    backgroundColor: c.accentSoft,
+    backgroundColor: c.primaryMuted,
     borderWidth: 1,
-    borderColor: c.accent,
+    borderColor: c.primary,
     borderRadius: radius.lg,
     padding: spacing.lg,
     gap: 2,
   },
   heroTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   heroLabel: {
-    color: c.accent,
+    color: c.primary,
     fontSize: 13,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
-  heroValue: { color: c.text, fontSize: 52, fontWeight: '900', letterSpacing: -1 },
-  heroHint: { color: c.textDim, fontSize: 13 },
+  heroValue: { color: c.textPrimary, fontSize: 52, fontWeight: '900', letterSpacing: -1 },
+  heroHint: { color: c.textSecondary, fontSize: 13 },
 
   statRow: { flexDirection: 'row', gap: spacing.md },
   statBox: {
     flex: 1,
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: radius.md,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
   },
-  statValue: { fontSize: 26, fontWeight: '800', color: c.text },
-  statLabel: { fontSize: 12, color: c.textDim, marginTop: 2 },
+  statValue: { fontSize: 26, fontWeight: '800', color: c.textPrimary },
+  statLabel: { fontSize: 12, color: c.textSecondary, marginTop: 2 },
 
   sectionHeader: {
     fontSize: 13,
     fontWeight: '700',
-    color: c.textDim,
+    color: c.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginTop: spacing.sm,
   },
-  sectionCaption: { fontSize: 12, color: c.textFaint, marginTop: -spacing.xs },
+  sectionCaption: { fontSize: 12, color: c.textMuted, marginTop: -spacing.xs },
 
   card: {
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: radius.lg,
@@ -302,25 +302,25 @@ function makeStyles(c: AppColors) {
   stageRow: { gap: spacing.sm },
   stageDivider: { borderTopWidth: 1, borderTopColor: c.border, paddingTop: spacing.md, marginTop: spacing.md },
   stageHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-  stageName: { fontSize: 17, fontWeight: '700', color: c.text },
+  stageName: { fontSize: 17, fontWeight: '700', color: c.textPrimary },
   stageScore: { fontSize: 22, fontWeight: '800', fontVariant: ['tabular-nums'] },
-  meterTrack: { height: 10, borderRadius: radius.pill, backgroundColor: c.track, overflow: 'hidden' },
+  meterTrack: { height: 10, borderRadius: radius.pill, backgroundColor: c.progressTrack, overflow: 'hidden' },
   meterFill: { height: 10, borderRadius: radius.pill },
   stageMeta: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  metaDim: { fontSize: 12, color: c.textFaint },
+  metaDim: { fontSize: 12, color: c.textMuted },
   delta: { fontSize: 12, fontWeight: '700' },
   spark: { marginTop: spacing.xs },
 
   metricGrid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: spacing.lg, columnGap: spacing.sm },
   metricItem: { width: '30%' },
-  metricValue: { fontSize: 22, fontWeight: '800', color: c.text },
-  metricLabel: { fontSize: 11, color: c.textDim, marginTop: 2 },
+  metricValue: { fontSize: 22, fontWeight: '800', color: c.textPrimary },
+  metricLabel: { fontSize: 11, color: c.textSecondary, marginTop: 2 },
 
   twoCol: { flexDirection: 'row', gap: spacing.md },
   dimCard: { flex: 1, padding: spacing.md, gap: spacing.sm },
   dimHeader: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
   dimRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  dimName: { color: c.text, fontSize: 13, textTransform: 'capitalize', flex: 1, marginRight: 6 },
+  dimName: { color: c.textPrimary, fontSize: 13, textTransform: 'capitalize', flex: 1, marginRight: 6 },
   dimScore: { fontSize: 14, fontWeight: '800' },
 
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
@@ -328,14 +328,14 @@ function makeStyles(c: AppColors) {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: radius.pill,
     paddingVertical: 6,
     paddingHorizontal: 12,
   },
-  pillText: { color: c.text, fontSize: 13, fontWeight: '600', textTransform: 'capitalize' },
+  pillText: { color: c.textPrimary, fontSize: 13, fontWeight: '600', textTransform: 'capitalize' },
   pillCount: {
     color: c.danger,
     fontSize: 12,
@@ -349,7 +349,7 @@ function makeStyles(c: AppColors) {
   attemptRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: radius.md,
@@ -357,8 +357,8 @@ function makeStyles(c: AppColors) {
     gap: spacing.md,
   },
   attemptLeft: { flex: 1 },
-  attemptTitle: { fontSize: 16, fontWeight: '700', color: c.text },
-  attemptMeta: { fontSize: 12, color: c.textFaint, marginTop: 3, textTransform: 'capitalize' },
+  attemptTitle: { fontSize: 16, fontWeight: '700', color: c.textPrimary },
+  attemptMeta: { fontSize: 12, color: c.textMuted, marginTop: 3, textTransform: 'capitalize' },
   scorePill: {
     minWidth: 48,
     height: 40,
@@ -369,6 +369,6 @@ function makeStyles(c: AppColors) {
   },
   scorePillText: { fontSize: 18, fontWeight: '800', fontVariant: ['tabular-nums'] },
 
-  empty: { color: c.textDim, fontSize: 14, fontStyle: 'italic' },
+  empty: { color: c.textSecondary, fontSize: 14, fontStyle: 'italic' },
 });
 }

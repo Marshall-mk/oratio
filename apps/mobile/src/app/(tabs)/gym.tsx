@@ -57,12 +57,12 @@ export default function Gym() {
             key={cat.key}
             style={({ pressed }) => [styles.tile, pressed && { opacity: 0.8 }]}
             onPress={() => router.push(`/gym/${cat.key}`)}>
-            <View style={[styles.iconChip, { backgroundColor: c.accentSoft }]}>
-              <Ionicons name={cat.icon} size={24} color={c.accent} />
+            <View style={[styles.iconChip, { backgroundColor: c.primaryMuted }]}>
+              <Ionicons name={cat.icon} size={24} color={c.primary} />
             </View>
             <Text style={styles.tileTitle}>{cat.label}</Text>
             <Text style={styles.tileBlurb}>{cat.blurb}</Text>
-            <Text style={[styles.tileCount, { color: c.accent }]}>{count(cat.key)}</Text>
+            <Text style={[styles.tileCount, { color: c.primary }]}>{count(cat.key)}</Text>
           </Pressable>
         ))}
       </View>
@@ -72,16 +72,16 @@ export default function Gym() {
 
 function makeStyles(c: AppColors) {
   return StyleSheet.create({
-  screen: { backgroundColor: c.bg },
+  screen: { backgroundColor: c.background },
   container: { padding: spacing.lg, paddingTop: 70, paddingBottom: 40 },
   header: { marginBottom: spacing.lg },
-  greeting: { fontSize: 28, fontWeight: '800', color: c.text, letterSpacing: -0.5 },
-  sub: { fontSize: 15, color: c.textDim, marginTop: 2 },
+  greeting: { fontSize: 28, fontWeight: '800', color: c.textPrimary, letterSpacing: -0.5 },
+  sub: { fontSize: 15, color: c.textSecondary, marginTop: 2 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   tile: {
     width: '47.5%',
     flexGrow: 1,
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: radius.lg,
@@ -97,8 +97,8 @@ function makeStyles(c: AppColors) {
     justifyContent: 'center',
     marginBottom: spacing.xs,
   },
-  tileTitle: { fontSize: 16, fontWeight: '700', color: c.text },
-  tileBlurb: { fontSize: 12, color: c.textDim, flex: 1 },
+  tileTitle: { fontSize: 16, fontWeight: '700', color: c.textPrimary },
+  tileBlurb: { fontSize: 12, color: c.textSecondary, flex: 1 },
   tileCount: { fontSize: 12, fontWeight: '700' },
 });
 }

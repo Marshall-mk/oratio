@@ -100,9 +100,9 @@ export default function OnboardingAssessment() {
 function makeStyles(c: AppColors) {
   return StyleSheet.create({
   container: { padding: spacing.lg, paddingTop: 80, gap: spacing.md },
-  step: { color: c.accent, fontWeight: '700', fontSize: 13 },
-  title: { fontSize: 28, fontWeight: '800', color: c.text },
-  section: { fontSize: 16, fontWeight: '700', color: c.text, marginTop: spacing.md },
+  step: { color: c.primary, fontWeight: '700', fontSize: 13 },
+  title: { fontSize: 28, fontWeight: '800', color: c.textPrimary },
+  section: { fontSize: 16, fontWeight: '700', color: c.textPrimary, marginTop: spacing.md },
   confidenceRow: { flexDirection: 'row', gap: spacing.sm },
   confidence: {
     flex: 1,
@@ -111,13 +111,13 @@ function makeStyles(c: AppColors) {
     borderRadius: 12,
     borderWidth: 1,
     borderColor: c.border,
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     gap: 4,
   },
-  confidenceSelected: { borderColor: c.accent, backgroundColor: c.accentSoft },
-  confidenceNum: { fontSize: 20, fontWeight: '800', color: c.textDim },
-  confidenceNumSelected: { color: c.text },
-  confidenceLabel: { fontSize: 10, color: c.textDim, textAlign: 'center' },
+  confidenceSelected: { borderColor: c.primary, backgroundColor: c.primaryMuted },
+  confidenceNum: { fontSize: 20, fontWeight: '800', color: c.textSecondary },
+  confidenceNumSelected: { color: c.textPrimary },
+  confidenceLabel: { fontSize: 10, color: c.textSecondary, textAlign: 'center' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   error: { color: c.danger },
 });

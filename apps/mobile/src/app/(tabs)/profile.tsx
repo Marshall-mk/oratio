@@ -164,13 +164,13 @@ export default function Profile() {
   if (isLoading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color={c.accent} />
+        <ActivityIndicator color={c.primary} />
       </View>
     );
   }
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: c.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: c.background }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>Profile</Text>
 
@@ -180,16 +180,16 @@ export default function Profile() {
         </View>
 
         <Text style={styles.label}>Name</Text>
-        <TextInput style={styles.input} value={displayName} onChangeText={setDisplayName} placeholder="Your name" placeholderTextColor={c.textDim} />
+        <TextInput style={styles.input} value={displayName} onChangeText={setDisplayName} placeholder="Your name" placeholderTextColor={c.textSecondary} />
 
         <Text style={styles.label}>Profession</Text>
-        <TextInput style={styles.input} value={profession} onChangeText={setProfession} placeholder="e.g. PhD student, founder" placeholderTextColor={c.textDim} />
+        <TextInput style={styles.input} value={profession} onChangeText={setProfession} placeholder="e.g. PhD student, founder" placeholderTextColor={c.textSecondary} />
 
         <Text style={styles.label}>Industry / field</Text>
-        <TextInput style={styles.input} value={industry} onChangeText={setIndustry} placeholder="Industry" placeholderTextColor={c.textDim} />
+        <TextInput style={styles.input} value={industry} onChangeText={setIndustry} placeholder="Industry" placeholderTextColor={c.textSecondary} />
 
         <Text style={styles.label}>Education</Text>
-        <TextInput style={styles.input} value={education} onChangeText={setEducation} placeholder="Education" placeholderTextColor={c.textDim} />
+        <TextInput style={styles.input} value={education} onChangeText={setEducation} placeholder="Education" placeholderTextColor={c.textSecondary} />
 
         <Text style={styles.label}>Goals</Text>
         <View style={styles.chips}>
@@ -265,7 +265,7 @@ export default function Profile() {
           value={apiKey}
           onChangeText={setApiKey}
           placeholder={settings?.has_api_key ? 'Enter a new key to replace it' : 'Paste your Gemini API key'}
-          placeholderTextColor={c.textDim}
+          placeholderTextColor={c.textSecondary}
           autoCapitalize="none"
           autoCorrect={false}
           secureTextEntry
@@ -305,20 +305,20 @@ export default function Profile() {
 
 function makeStyles(c: AppColors) {
   return StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: c.bg },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: c.background },
   container: { padding: spacing.lg, paddingTop: 70, paddingBottom: 40, gap: spacing.sm },
-  title: { fontSize: 28, fontWeight: '800', color: c.text },
-  readOnly: { backgroundColor: c.bg, justifyContent: 'center' },
-  readOnlyText: { color: c.textDim, fontSize: 16 },
+  title: { fontSize: 28, fontWeight: '800', color: c.textPrimary },
+  readOnly: { backgroundColor: c.background, justifyContent: 'center' },
+  readOnlyText: { color: c.textSecondary, fontSize: 16 },
   actionBtn: { alignSelf: 'center', paddingHorizontal: 40, marginTop: spacing.xs },
-  label: { fontSize: 13, fontWeight: '700', color: c.textDim, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: spacing.sm },
+  label: { fontSize: 13, fontWeight: '700', color: c.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: spacing.sm },
   input: {
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: 12,
     padding: 14,
-    color: c.text,
+    color: c.textPrimary,
     fontSize: 16,
   },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
@@ -330,21 +330,21 @@ function makeStyles(c: AppColors) {
     borderRadius: 12,
     borderWidth: 1,
     borderColor: c.border,
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     gap: 4,
   },
-  confSelected: { borderColor: c.accent, backgroundColor: c.accentSoft },
-  confNum: { fontSize: 18, fontWeight: '800', color: c.textDim },
-  confNumSelected: { color: c.text },
-  confLabel: { fontSize: 9, color: c.textDim, textAlign: 'center' },
+  confSelected: { borderColor: c.primary, backgroundColor: c.primaryMuted },
+  confNum: { fontSize: 18, fontWeight: '800', color: c.textSecondary },
+  confNumSelected: { color: c.textPrimary },
+  confLabel: { fontSize: 9, color: c.textSecondary, textAlign: 'center' },
   saved: { color: c.success, textAlign: 'center', fontWeight: '600' },
   error: { color: c.danger, textAlign: 'center' },
   divider: { height: 1, backgroundColor: c.border, marginVertical: spacing.md },
-  sectionHeading: { fontSize: 20, fontWeight: '800', color: c.text },
-  aiNote: { fontSize: 13, color: c.textDim, marginBottom: spacing.xs },
+  sectionHeading: { fontSize: 20, fontWeight: '800', color: c.textPrimary },
+  aiNote: { fontSize: 13, color: c.textSecondary, marginBottom: spacing.xs },
   segment: {
     flexDirection: 'row',
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: 12,
@@ -352,8 +352,8 @@ function makeStyles(c: AppColors) {
     gap: 4,
   },
   segmentItem: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 9 },
-  segmentItemActive: { backgroundColor: c.accent },
-  segmentText: { color: c.textDim, fontSize: 14, fontWeight: '600' },
-  segmentTextActive: { color: c.onAccent },
+  segmentItemActive: { backgroundColor: c.primary },
+  segmentText: { color: c.textSecondary, fontSize: 14, fontWeight: '600' },
+  segmentTextActive: { color: c.onPrimary },
 });
 }

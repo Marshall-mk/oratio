@@ -2,57 +2,77 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useColorScheme } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 
+// Premium Forest Green — semantic tokens. Components consume these, never hex.
 export type AppColors = {
-  bg: string;
-  card: string;
-  cardElevated: string;
+  background: string;
+  surface: string;
+  surfaceElevated: string;
+  surfaceMuted: string;
   border: string;
-  text: string;
-  textDim: string;
-  textFaint: string;
-  accent: string;
-  accentSoft: string;
-  onAccent: string;
-  danger: string;
-  dangerSoft: string;
+  borderStrong: string;
+  textPrimary: string;
+  textSecondary: string;
+  textMuted: string;
+  primary: string;
+  primaryHover: string;
+  primaryMuted: string;
+  onPrimary: string; // text/icon on a primary-filled surface
   success: string;
-  track: string;
-};
-
-// Single green family (the #081c15 → #b7e4c7 scale). Red is reserved for genuine
-// warnings (habit counts, weaknesses, low scores, destructive actions).
-export const darkColors: AppColors = {
-  bg: '#081c15',
-  card: '#0e2a20',
-  cardElevated: '#13352a',
-  border: '#1b4332',
-  text: '#e6f4ec',
-  textDim: '#8fbfa9',
-  textFaint: '#5f8d77',
-  accent: '#52b788',
-  accentSoft: '#16382a',
-  onAccent: '#06170f',
-  danger: '#ff6b6b',
-  dangerSoft: '#3a1a1b',
-  success: '#52b788',
-  track: '#16382a',
+  warning: string;
+  danger: string;
+  dangerSoft: string; // tinted danger background (badges, pills)
+  progressTrack: string;
+  progressFill: string;
+  tabActive: string;
+  tabInactive: string;
 };
 
 export const lightColors: AppColors = {
-  bg: '#f2faf5',
-  card: '#ffffff',
-  cardElevated: '#e6f5ec',
-  border: '#c4e7d4',
-  text: '#0b2118',
-  textDim: '#477261',
-  textFaint: '#6f9685',
-  accent: '#2d6a4f',
-  accentSoft: '#cdeede',
-  onAccent: '#ffffff',
-  danger: '#cf4040',
-  dangerSoft: '#f7dede',
-  success: '#2d6a4f',
-  track: '#d4efe0',
+  background: '#FAFAF8',
+  surface: '#FFFFFF',
+  surfaceElevated: '#F6F8F6',
+  surfaceMuted: '#EEF3EF',
+  border: '#E3E7E4',
+  borderStrong: '#CBD6CE',
+  textPrimary: '#0B0F0D',
+  textSecondary: '#4F5F56',
+  textMuted: '#7A8880',
+  primary: '#2F6F4E',
+  primaryHover: '#3E7C59',
+  primaryMuted: '#DDEBE3',
+  onPrimary: '#FFFFFF',
+  success: '#3E7C59',
+  warning: '#B7791F',
+  danger: '#C94C4C',
+  dangerSoft: '#F6E1E1',
+  progressTrack: '#DDEBE3',
+  progressFill: '#2F6F4E',
+  tabActive: '#2F6F4E',
+  tabInactive: '#6F7D75',
+};
+
+export const darkColors: AppColors = {
+  background: '#0B0F0D',
+  surface: '#141A17',
+  surfaceElevated: '#1A211D',
+  surfaceMuted: '#202B25',
+  border: '#232B27',
+  borderStrong: '#314039',
+  textPrimary: '#FAFAFA',
+  textSecondary: '#B8C2BC',
+  textMuted: '#7F8C86',
+  primary: '#5AAE7F',
+  primaryHover: '#76C99A',
+  primaryMuted: '#1E3A2B',
+  onPrimary: '#0B0F0D',
+  success: '#5AAE7F',
+  warning: '#E0A83E',
+  danger: '#FF7474',
+  dangerSoft: '#3A1F1F',
+  progressTrack: '#22352B',
+  progressFill: '#5AAE7F',
+  tabActive: '#5AAE7F',
+  tabInactive: '#7F8C86',
 };
 
 export const spacing = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 };
@@ -61,7 +81,7 @@ export const radius = { sm: 10, md: 14, lg: 20, pill: 999 };
 /** Color for a 1–10 score: green when strong, neutral mid, red when weak. */
 export function scoreColor(c: AppColors, score: number): string {
   if (score >= 7) return c.success;
-  if (score >= 5) return c.textDim;
+  if (score >= 5) return c.textSecondary;
   return c.danger;
 }
 

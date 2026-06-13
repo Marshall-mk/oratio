@@ -76,9 +76,9 @@ export default function OnboardingGoals() {
 function makeStyles(c: AppColors) {
   return StyleSheet.create({
   container: { padding: spacing.lg, paddingTop: 80, gap: spacing.md },
-  step: { color: c.accent, fontWeight: '700', fontSize: 13 },
-  title: { fontSize: 28, fontWeight: '800', color: c.text },
-  section: { fontSize: 16, fontWeight: '700', color: c.text, marginTop: spacing.md },
+  step: { color: c.primary, fontWeight: '700', fontSize: 13 },
+  title: { fontSize: 28, fontWeight: '800', color: c.textPrimary },
+  section: { fontSize: 16, fontWeight: '700', color: c.textPrimary, marginTop: spacing.md },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
 });
 }

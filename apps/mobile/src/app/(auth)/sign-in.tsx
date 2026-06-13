@@ -38,7 +38,7 @@ export default function SignIn() {
         <TextInput
           style={styles.input}
           placeholder="Email"
-          placeholderTextColor={c.textDim}
+          placeholderTextColor={c.textSecondary}
           autoCapitalize="none"
           keyboardType="email-address"
           value={email}
@@ -47,7 +47,7 @@ export default function SignIn() {
         <TextInput
           style={styles.input}
           placeholder="Password"
-          placeholderTextColor={c.textDim}
+          placeholderTextColor={c.textSecondary}
           secureTextEntry
           value={password}
           onChangeText={setPassword}
@@ -73,22 +73,22 @@ export default function SignIn() {
 
 function makeStyles(c: AppColors) {
   return StyleSheet.create({
-  container: { flex: 1, backgroundColor: c.bg, justifyContent: 'center' },
+  container: { flex: 1, backgroundColor: c.background, justifyContent: 'center' },
   inner: { padding: spacing.lg, gap: spacing.md },
-  logo: { fontSize: 42, fontWeight: '800', color: c.text, textAlign: 'center' },
+  logo: { fontSize: 42, fontWeight: '800', color: c.textPrimary, textAlign: 'center' },
   tagline: {
     fontSize: 16,
-    color: c.textDim,
+    color: c.textSecondary,
     textAlign: 'center',
     marginBottom: spacing.lg,
   },
   input: {
-    backgroundColor: c.card,
+    backgroundColor: c.surface,
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: 12,
     padding: 14,
-    color: c.text,
+    color: c.textPrimary,
     fontSize: 16,
   },
   error: { color: c.danger, textAlign: 'center' },

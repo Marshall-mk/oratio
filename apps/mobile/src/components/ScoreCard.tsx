@@ -77,7 +77,7 @@ export function ScoreCard({ stage, score, summary, dimensions, previousScore }: 
 function makeStyles(c: AppColors) {
   return StyleSheet.create({
     card: {
-      backgroundColor: c.card,
+      backgroundColor: c.surface,
       borderWidth: 1,
       borderColor: c.border,
       borderRadius: 14,
@@ -85,19 +85,19 @@ function makeStyles(c: AppColors) {
       gap: spacing.sm,
     },
     headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    stage: { fontSize: 17, fontWeight: '700', color: c.text },
+    stage: { fontSize: 17, fontWeight: '700', color: c.textPrimary },
     scoreRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
     delta: { fontSize: 13, fontWeight: '700' },
     score: { fontSize: 28, fontWeight: '800', fontVariant: ['tabular-nums'] },
-    summary: { fontSize: 13, color: c.textDim, lineHeight: 19 },
+    summary: { fontSize: 13, color: c.textSecondary, lineHeight: 19 },
     dimensions: { gap: spacing.md, marginTop: spacing.xs },
     dimensionRow: { gap: 4 },
     dimensionHeader: { flexDirection: 'row', justifyContent: 'space-between' },
-    dimensionName: { fontSize: 13, color: c.text, textTransform: 'capitalize', fontWeight: '600' },
+    dimensionName: { fontSize: 13, color: c.textPrimary, textTransform: 'capitalize', fontWeight: '600' },
     dimensionScore: { fontSize: 13, fontWeight: '700' },
-    barTrack: { height: 4, borderRadius: 2, backgroundColor: c.track },
+    barTrack: { height: 4, borderRadius: 2, backgroundColor: c.progressTrack },
     barFill: { height: 4, borderRadius: 2 },
-    rationale: { fontSize: 12, color: c.textDim, lineHeight: 17 },
-    expandHint: { fontSize: 11, color: c.textDim, textAlign: 'center', marginTop: 2 },
+    rationale: { fontSize: 12, color: c.textSecondary, lineHeight: 17 },
+    expandHint: { fontSize: 11, color: c.textSecondary, textAlign: 'center', marginTop: 2 },
   });
 }
