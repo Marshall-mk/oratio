@@ -1,4 +1,4 @@
-# Veritas — Architecture Notes
+# ōrātiō — Architecture Notes
 
 ## System overview
 

@@ -1,4 +1,6 @@
-# Veritas — Build Tracker
+# ōrātiō — Build Tracker
+
+> Renamed from Veritas → ōrātiō (Latin for "speech"). Display name **ōrātiō**; internal identifiers use ASCII `oratio` (slug, scheme, bundle id `dev.oratio.app`). Local Supabase `project_id` left as `veritas` to avoid orphaning the running dev stack.
 
 Legend: ✅ done · 🚧 in progress · ⬜ not started · 🙋 needs user action
 

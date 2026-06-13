@@ -1,4 +1,6 @@
-# VERITAS
+# ōrātiō
+
+> formerly Veritas
 
 ## Product Requirements Document (PRD)
 
@@ -10,7 +12,7 @@
 
 ## Product Name
 
-Veritas
+ōrātiō
 
 ## Product Category
 
@@ -23,9 +25,9 @@ AI-Native Mobile Communication Training Platform
 
 ## Vision
 
-Veritas is a voice-first AI communication gym that trains users to think, structure ideas, communicate clearly, persuade effectively, understand complex information, and improve social intelligence through deliberate practice and measurable feedback.
+ōrātiō is a voice-first AI communication gym that trains users to think, structure ideas, communicate clearly, persuade effectively, understand complex information, and improve social intelligence through deliberate practice and measurable feedback.
 
-Unlike AI assistants that optimize for conversation, Veritas optimizes for skill development.
+Unlike AI assistants that optimize for conversation, ōrātiō optimizes for skill development.
 
 The core learning loop is:
 
@@ -37,7 +39,7 @@ Challenge → Perform → Evaluate → Retry → Improve
 
 Most speaking apps evaluate speech.
 
-Veritas evaluates:
+ōrātiō evaluates:
 
 1. Thinking
 2. Structure
@@ -1354,4 +1356,4 @@ White Label Version
 
 # NORTH STAR
 
-Veritas should become the world's most effective system for improving how people think, structure ideas, communicate, persuade, and understand others.
+ōrātiō should become the world's most effective system for improving how people think, structure ideas, communicate, persuade, and understand others.

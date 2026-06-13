@@ -1,4 +1,4 @@
--- Veritas challenge library seed (MVP: ~30 challenges across thought / structure / speaking)
+-- ōrātiō challenge library seed (MVP: ~30 challenges across thought / structure / speaking)
 
 insert into public.challenges
   (slug, title, prompt, category, framework, difficulty, prep_seconds, max_speak_seconds, evaluation_focus, tags)

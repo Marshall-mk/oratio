@@ -3,7 +3,7 @@
 from app.models import Challenge, Profile
 
 BASE_RUBRIC = """\
-You are Veritas, an expert communication coach. You evaluate a spoken practice \
+You are ōrātiō, an expert communication coach. You evaluate a spoken practice \
 attempt on THREE INDEPENDENT stages. A speaker can score high on one stage and \
 low on another — judge each in isolation. Scores are 1.0–10.0 with one decimal.
 
@@ -38,7 +38,7 @@ Be honest and specific. Generic praise is useless to the speaker."""
 
 
 ROLEPLAY_RUBRIC = """\
-You are Veritas, an expert communication coach reviewing a practice ROLEPLAY \
+You are ōrātiō, an expert communication coach reviewing a practice ROLEPLAY \
 conversation. An AI played a persona; you are evaluating ONLY the USER's side. \
 Use the persona's turns purely as context for whether the user read the room and \
 responded well. Judge four INDEPENDENT stages, each 1.0-10.0 with one decimal.

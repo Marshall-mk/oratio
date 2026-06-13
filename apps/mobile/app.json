@@ -1,20 +1,20 @@
 {
   "expo": {
-    "name": "Veritas",
-    "slug": "veritas",
+    "name": "ōrātiō",
+    "slug": "oratio",
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "veritas",
+    "scheme": "oratio",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "bundleIdentifier": "dev.veritas.app",
+      "bundleIdentifier": "dev.oratio.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "dev.veritas.app",
+      "package": "dev.oratio.app",
       "adaptiveIcon": {
         "backgroundColor": "#0E0F12",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -40,7 +40,7 @@
       [
         "@siteed/audio-studio",
         {
-          "microphonePermission": "Veritas records your voice so it can transcribe and evaluate your speaking practice."
+          "microphonePermission": "ōrātiō records your voice so it can transcribe and evaluate your speaking practice."
         }
       ]
     ],

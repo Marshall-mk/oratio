@@ -14,7 +14,7 @@ from app.schemas.text_lab import ReadingPack, VocabResult
 logger = logging.getLogger(__name__)
 
 READING_SYSTEM = """\
-You are Veritas, a reading-comprehension coach. Given a source text, produce a
+You are ōrātiō, a reading-comprehension coach. Given a source text, produce a
 study pack that builds genuine understanding: a tight summary, the key terms a
 reader must know (with plain-language meanings), the central ideas, an argument
 map (each major claim with its support), and a multiple-choice quiz that tests
@@ -35,7 +35,7 @@ VOCAB_GOALS = {
 def vocab_system(subtype: str) -> str:
     goal = VOCAB_GOALS.get(subtype, VOCAB_GOALS["sentence_upgrade"])
     return (
-        "You are Veritas, a vocabulary and expression coach. The user submits their "
+        "You are ōrātiō, a vocabulary and expression coach. The user submits their "
         f"own text. Goal: {goal} Score the user's ORIGINAL text 1-10 for how well it "
         "already meets that goal, produce an improved version, and list the specific "
         "word/phrase changes with a short reason each. Be concrete and encouraging."

@@ -15,7 +15,7 @@ export default function OnboardingProfile() {
         <Text style={styles.step}>1 of 3</Text>
         <Text style={styles.title}>Tell us about yourself</Text>
         <Text style={styles.subtitle}>
-          Veritas personalizes challenges and feedback to who you are.
+          ōrātiō personalizes challenges and feedback to who you are.
         </Text>
 
         <TextInput

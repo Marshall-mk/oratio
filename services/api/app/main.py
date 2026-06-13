@@ -23,7 +23,7 @@ async def lifespan(app: FastAPI):
     await dispose_engine()
 
 
-app = FastAPI(title="Veritas API", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="ōrātiō API", version="0.1.0", lifespan=lifespan)
 
 app.include_router(profiles.router)
 app.include_router(challenges.router)

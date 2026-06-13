@@ -1,4 +1,4 @@
--- Veritas initial schema
+-- ōrātiō initial schema
 -- Conventions: all user-owned tables carry user_id and RLS owner policies.
 -- The backend connects with its own credentials and enforces ownership in queries;
 -- RLS protects direct client access (supabase-js) from the mobile app.

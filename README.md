@@ -1,4 +1,4 @@
-# Veritas
+# ōrātiō
 
 Voice-first AI communication training app. Users take speaking challenges, get live transcription while they speak, and receive an AI evaluation that scores three independent stages — **Thought**, **Structure**, and **Delivery** — with a feedback report and retry loop.
 

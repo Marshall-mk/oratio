@@ -1,7 +1,7 @@
 [project]
-name = "veritas-api"
+name = "oratio-api"
 version = "0.1.0"
-description = "Veritas backend: live transcription proxy + communication evaluation"
+description = "oratio backend: live transcription proxy + communication evaluation"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115",

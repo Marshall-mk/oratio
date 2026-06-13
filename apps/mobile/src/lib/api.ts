@@ -11,7 +11,7 @@ export class ApiError extends Error {
   }
 }
 
-/** Authenticated fetch against the Veritas backend. */
+/** Authenticated fetch against the ōrātiō backend. */
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;

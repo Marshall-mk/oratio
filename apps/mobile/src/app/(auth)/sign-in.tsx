@@ -30,7 +30,7 @@ export default function SignIn() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.inner}>
-        <Text style={styles.logo}>Veritas</Text>
+        <Text style={styles.logo}>ōrātiō</Text>
         <Text style={styles.tagline}>Your communication gym.</Text>
 
         <TextInput
