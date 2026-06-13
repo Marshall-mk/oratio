@@ -5,6 +5,7 @@ from app.models.profiles import Profile
 from app.models.sessions import Attempt, AudioFile, Session, Transcript
 from app.models.personal import CommunicationMetric
 from app.models.text_lab import TextExercise
+from app.models.user_settings import UserSettings
 
 __all__ = [
     "Base",
@@ -18,4 +19,5 @@ __all__ = [
     "FeedbackReport",
     "TextExercise",
     "CommunicationMetric",
+    "UserSettings",
 ]

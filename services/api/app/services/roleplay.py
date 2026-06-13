@@ -40,6 +40,8 @@ class ConversationTurn:
 @dataclass
 class RoleplayConductor:
     persona: dict  # {name, voice, instruction, opener}
+    api_key: str | None = None
+    live_model: str | None = None
     turns: list[ConversationTurn] = field(default_factory=list)
     _session: object = None
     _session_cm: object = None
@@ -52,7 +54,7 @@ class RoleplayConductor:
 
     async def __aenter__(self) -> "RoleplayConductor":
         settings = get_settings()
-        client = genai.Client(api_key=settings.gemini_api_key)
+        client = genai.Client(api_key=self.api_key or settings.gemini_api_key)
         speech = None
         if voice := self.persona.get("voice"):
             speech = types.SpeechConfig(
@@ -71,7 +73,7 @@ class RoleplayConductor:
             ),
         )
         self._session_cm = client.aio.live.connect(
-            model=settings.gemini_live_model, config=config
+            model=self.live_model or settings.gemini_live_model, config=config
         )
         self._session = await self._session_cm.__aenter__()
         self._recv_task = asyncio.create_task(self._receive_loop())

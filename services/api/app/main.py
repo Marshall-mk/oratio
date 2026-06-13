@@ -12,6 +12,7 @@ from app.routers import (
     progress,
     roleplay_ws,
     sessions,
+    settings,
     text_lab,
 )
 
@@ -26,6 +27,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="ōrātiō API", version="0.1.0", lifespan=lifespan)
 
 app.include_router(profiles.router)
+app.include_router(settings.router)
 app.include_router(challenges.router)
 app.include_router(sessions.router)
 app.include_router(progress.router)

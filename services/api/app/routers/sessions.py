@@ -255,8 +255,11 @@ async def transcribe_fallback(
     await db.commit()
 
     try:
+        from app.services.gemini_config import resolve_for_user
+
+        cfg = await resolve_for_user(db, user.id)
         wav = await download_recording(body.storage_path)
-        full_text = await transcribe_wav(wav)
+        full_text = await transcribe_wav(wav, cfg.api_key, cfg.eval_model)
     except Exception as exc:
         attempt.status = "failed"
         await db.commit()

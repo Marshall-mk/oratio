@@ -19,6 +19,7 @@ from app.models import (
     Session,
     Transcript,
 )
+from app.services.gemini_config import GeminiConfig, resolve_for_user
 from app.services.memory import retrieve_memories, store_memory
 from app.services.metrics import compute_metrics
 from app.schemas.evaluation import (
@@ -63,12 +64,13 @@ async def _evaluate(db: AsyncSession, attempt_id: uuid.UUID) -> None:
     profile = await db.get(Profile, attempt.user_id)
 
     is_roleplay = challenge.mode == "roleplay"
+    cfg = await resolve_for_user(db, attempt.user_id)
     # Personalize: pull this speaker's most relevant past memories into the prompt.
     history = await retrieve_memories(
-        db, attempt.user_id, f"{challenge.title}: {challenge.prompt}"
+        db, attempt.user_id, f"{challenge.title}: {challenge.prompt}", api_key=cfg.api_key
     )
     result = await _call_gemini(
-        challenge, profile, transcript.full_text, attempt, is_roleplay, history
+        challenge, profile, transcript.full_text, attempt, is_roleplay, history, cfg
     )
 
     stage_names = ("thought", "structure", "delivery", "social") if is_roleplay else (
@@ -105,7 +107,7 @@ async def _evaluate(db: AsyncSession, attempt_id: uuid.UUID) -> None:
             worst_sentence=result.worst_sentence.model_dump(),
             suggested_rewrite=result.suggested_rewrite,
             retry_challenge=result.retry_challenge,
-            model=get_settings().gemini_eval_model,
+            model=cfg.eval_model,
             raw_response=result.model_dump(),
         )
     )
@@ -122,7 +124,7 @@ async def _evaluate(db: AsyncSession, attempt_id: uuid.UUID) -> None:
     # Store this attempt as a memory for future personalization (best-effort).
     try:
         summary = _memory_summary(challenge, result, overall, metrics, stage_names)
-        await store_memory(db, attempt.user_id, attempt.id, summary)
+        await store_memory(db, attempt.user_id, attempt.id, summary, api_key=cfg.api_key)
     except Exception:
         logger.exception("Failed to store memory for attempt %s", attempt_id)
 
@@ -150,9 +152,12 @@ async def _call_gemini(
     attempt: Attempt,
     is_roleplay: bool = False,
     history: list[str] | None = None,
+    cfg: GeminiConfig | None = None,
 ) -> EvaluationResult | RoleplayEvaluationResult:
     settings = get_settings()
-    client = genai.Client(api_key=settings.gemini_api_key)
+    api_key = cfg.api_key if cfg else settings.gemini_api_key
+    eval_model = cfg.eval_model if cfg else settings.gemini_eval_model
+    client = genai.Client(api_key=api_key)
     if is_roleplay:
         system, schema = ROLEPLAY_RUBRIC, RoleplayEvaluationResult
         prompt = build_roleplay_prompt(challenge, profile, transcript_text, history)
@@ -161,7 +166,7 @@ async def _call_gemini(
         system, schema = BASE_RUBRIC, EvaluationResult
         prompt = build_evaluation_prompt(challenge, profile, transcript_text, duration, history)
     response = await client.aio.models.generate_content(
-        model=settings.gemini_eval_model,
+        model=eval_model,
         contents=prompt,
         config={
             "system_instruction": system,

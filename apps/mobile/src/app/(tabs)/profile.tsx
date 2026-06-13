@@ -14,9 +14,21 @@ import {
 import { Button } from '@/components/Button';
 import { Chip } from '@/components/Chip';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
+import { useSettings, useUpdateSettings } from '@/hooks/useSettings';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { supabase } from '@/lib/supabase';
 import { colors, spacing } from '@/theme';
+
+function errorText(e: unknown): string {
+  if (e instanceof Error) {
+    try {
+      return JSON.parse(e.message).detail ?? e.message;
+    } catch {
+      return e.message;
+    }
+  }
+  return 'Something went wrong';
+}
 
 const GOAL_OPTIONS = [
   'Public speaking', 'Research communication', 'Interviews', 'Storytelling', 'Persuasion',
@@ -40,6 +52,42 @@ export default function Profile() {
   const { session } = useSupabaseSession();
   const { data: profile, isLoading } = useProfile();
   const update = useUpdateProfile();
+  const { data: settings } = useSettings();
+  const updateSettings = useUpdateSettings();
+
+  const [apiKey, setApiKey] = useState('');
+  const [model, setModel] = useState<string | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiSaved, setAiSaved] = useState(false);
+
+  useEffect(() => {
+    if (settings) setModel(settings.eval_model);
+  }, [settings]);
+
+  async function saveAi() {
+    setAiError(null);
+    setAiSaved(false);
+    try {
+      await updateSettings.mutateAsync({
+        eval_model: model ?? undefined,
+        gemini_api_key: apiKey.trim() ? apiKey.trim() : undefined,
+      });
+      setApiKey('');
+      setAiSaved(true);
+    } catch (e) {
+      setAiError(errorText(e));
+    }
+  }
+
+  async function clearKey() {
+    setAiError(null);
+    setAiSaved(false);
+    try {
+      await updateSettings.mutateAsync({ gemini_api_key: '' });
+    } catch (e) {
+      setAiError(errorText(e));
+    }
+  }
 
   const [displayName, setDisplayName] = useState('');
   const [profession, setProfession] = useState('');
@@ -143,6 +191,41 @@ export default function Profile() {
         <Button title="Save changes" onPress={save} loading={update.isPending} />
 
         <View style={styles.divider} />
+
+        <Text style={styles.sectionHeading}>AI settings</Text>
+        <Text style={styles.aiNote}>
+          {settings?.using_own_key
+            ? `Using your own API key (${settings.api_key_hint})`
+            : "Using ōrātiō's default key"}
+        </Text>
+
+        <Text style={styles.label}>Evaluation model</Text>
+        <View style={styles.chips}>
+          {(settings?.available_models ?? []).map((m) => (
+            <Chip key={m} label={m.replace('gemini-', '')} selected={model === m} onToggle={() => setModel(m)} />
+          ))}
+        </View>
+
+        <Text style={styles.label}>Gemini API key</Text>
+        <TextInput
+          style={styles.input}
+          value={apiKey}
+          onChangeText={setApiKey}
+          placeholder={settings?.has_api_key ? 'Enter a new key to replace it' : 'Paste your Gemini API key'}
+          placeholderTextColor={colors.textDim}
+          autoCapitalize="none"
+          autoCorrect={false}
+          secureTextEntry
+        />
+
+        {aiError && <Text style={styles.error}>{aiError}</Text>}
+        {aiSaved && <Text style={styles.saved}>AI settings saved ✓</Text>}
+        <Button title="Save AI settings" onPress={saveAi} loading={updateSettings.isPending} />
+        {settings?.has_api_key && (
+          <Button title="Use ōrātiō's default key" variant="ghost" onPress={clearKey} />
+        )}
+
+        <View style={styles.divider} />
         <Button title="Sign out" variant="ghost" onPress={() => supabase.auth.signOut()} />
       </ScrollView>
     </KeyboardAvoidingView>
@@ -181,5 +264,8 @@ const styles = StyleSheet.create({
   confNumSelected: { color: colors.text },
   confLabel: { fontSize: 9, color: colors.textDim, textAlign: 'center' },
   saved: { color: colors.success, textAlign: 'center', fontWeight: '600' },
+  error: { color: colors.danger, textAlign: 'center' },
   divider: { height: 1, backgroundColor: colors.border, marginVertical: spacing.md },
+  sectionHeading: { fontSize: 20, fontWeight: '800', color: colors.text },
+  aiNote: { fontSize: 13, color: colors.textDim, marginBottom: spacing.xs },
 });

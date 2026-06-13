@@ -27,6 +27,7 @@ from app.auth import verify_token
 from app.db import get_session_factory
 from app.models import Attempt, Challenge, Session, Transcript
 from app.services.evaluator import run_evaluation
+from app.services.gemini_config import resolve_for_user
 from app.services.live_coach import LiveCoach
 from app.services.live_transcriber import LiveTranscriber
 
@@ -59,11 +60,12 @@ async def live_coach_session(ws: WebSocket, token: str, attempt_id: uuid.UUID) -
         session = await db.get(Session, attempt.session_id)
         challenge = await db.get(Challenge, session.challenge_id)
         slug = challenge.slug
+        cfg = await resolve_for_user(db, user.id)
 
     coach = LiveCoach(challenge_slug=slug)
 
     try:
-        async with LiveTranscriber() as transcriber:
+        async with LiveTranscriber(api_key=cfg.api_key, live_model=cfg.live_model) as transcriber:
 
             async def pump_deltas() -> None:
                 async for seg in transcriber.deltas():

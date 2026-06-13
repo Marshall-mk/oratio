@@ -20,8 +20,8 @@ EMBED_MODEL = "gemini-embedding-001"
 EMBED_DIM = 768
 
 
-async def _embed(content: str, task_type: str) -> list[float]:
-    client = genai.Client(api_key=get_settings().gemini_api_key)
+async def _embed(content: str, task_type: str, api_key: str | None = None) -> list[float]:
+    client = genai.Client(api_key=api_key or get_settings().gemini_api_key)
     resp = await client.aio.models.embed_content(
         model=EMBED_MODEL,
         contents=content,
@@ -33,9 +33,13 @@ async def _embed(content: str, task_type: str) -> list[float]:
 
 
 async def store_memory(
-    db: AsyncSession, user_id: uuid.UUID, attempt_id: uuid.UUID, summary: str
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    attempt_id: uuid.UUID,
+    summary: str,
+    api_key: str | None = None,
 ) -> None:
-    embedding = await _embed(summary, "RETRIEVAL_DOCUMENT")
+    embedding = await _embed(summary, "RETRIEVAL_DOCUMENT", api_key)
     vec = "[" + ",".join(str(x) for x in embedding) + "]"
     await db.execute(
         sql_text(
@@ -54,11 +58,11 @@ async def store_memory(
 
 
 async def retrieve_memories(
-    db: AsyncSession, user_id: uuid.UUID, query: str, k: int = 5
+    db: AsyncSession, user_id: uuid.UUID, query: str, k: int = 5, api_key: str | None = None
 ) -> list[str]:
     """Return up to k past memory summaries most relevant to the current challenge."""
     try:
-        embedding = await _embed(query, "RETRIEVAL_QUERY")
+        embedding = await _embed(query, "RETRIEVAL_QUERY", api_key)
     except Exception:
         logger.exception("memory query embedding failed")
         return []

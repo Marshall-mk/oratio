@@ -38,6 +38,8 @@ class LiveTranscriber:
             await t.finish()
     """
 
+    api_key: str | None = None
+    live_model: str | None = None
     segments: list[TranscriptSegment] = field(default_factory=list)
     _session: object = None
     _session_cm: object = None
@@ -48,14 +50,14 @@ class LiveTranscriber:
 
     async def __aenter__(self) -> "LiveTranscriber":
         settings = get_settings()
-        client = genai.Client(api_key=settings.gemini_api_key)
+        client = genai.Client(api_key=self.api_key or settings.gemini_api_key)
         config = types.LiveConnectConfig(
             response_modalities=[types.Modality.AUDIO],
             system_instruction=SILENT_LISTENER_INSTRUCTION,
             input_audio_transcription=types.AudioTranscriptionConfig(),
         )
         self._session_cm = client.aio.live.connect(
-            model=settings.gemini_live_model, config=config
+            model=self.live_model or settings.gemini_live_model, config=config
         )
         self._session = await self._session_cm.__aenter__()
         self._started_at = time.monotonic()

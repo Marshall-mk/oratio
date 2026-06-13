@@ -28,6 +28,7 @@ from app.auth import verify_token
 from app.db import get_session_factory
 from app.models import Attempt, Challenge, Session, Transcript
 from app.services.evaluator import run_evaluation
+from app.services.gemini_config import resolve_for_user
 from app.services.roleplay import RoleplayConductor
 
 router = APIRouter(tags=["roleplay"])
@@ -63,9 +64,12 @@ async def roleplay_session(ws: WebSocket, token: str, attempt_id: uuid.UUID) -> 
             await ws.close(code=4400)
             return
         persona = challenge.persona
+        cfg = await resolve_for_user(db, user.id)
 
     try:
-        async with RoleplayConductor(persona=persona) as rp:
+        async with RoleplayConductor(
+            persona=persona, api_key=cfg.api_key, live_model=cfg.live_model
+        ) as rp:
 
             async def pump_events() -> None:
                 async for kind, payload in rp.events():

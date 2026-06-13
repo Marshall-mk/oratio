@@ -10,6 +10,7 @@ from app.config import get_settings
 from app.db import get_session_factory
 from app.models import TextExercise
 from app.schemas.text_lab import ReadingPack, VocabResult
+from app.services.gemini_config import resolve_for_user
 
 logger = logging.getLogger(__name__)
 
@@ -42,13 +43,15 @@ def vocab_system(subtype: str) -> str:
     )
 
 
-async def extract_pdf_text(pdf_base64: str) -> str:
+async def extract_pdf_text(
+    pdf_base64: str, api_key: str | None = None, model: str | None = None
+) -> str:
     import base64
 
     settings = get_settings()
-    client = genai.Client(api_key=settings.gemini_api_key)
+    client = genai.Client(api_key=api_key or settings.gemini_api_key)
     resp = await client.aio.models.generate_content(
-        model=settings.gemini_eval_model,
+        model=model or settings.gemini_eval_model,
         contents=[
             types.Part.from_bytes(
                 data=base64.b64decode(pdf_base64), mime_type="application/pdf"
@@ -68,11 +71,11 @@ async def generate_reading_pack(exercise_id: uuid.UUID) -> None:
         if ex is None or ex.status != "generating":
             return
         try:
-            settings = get_settings()
-            client = genai.Client(api_key=settings.gemini_api_key)
+            cfg = await resolve_for_user(db, ex.user_id)
+            client = genai.Client(api_key=cfg.api_key)
             contents: list = [f"SOURCE TEXT:\n\"\"\"\n{ex.source_text}\n\"\"\""]
             resp = await client.aio.models.generate_content(
-                model=settings.gemini_eval_model,
+                model=cfg.eval_model,
                 contents=contents,
                 config={
                     "system_instruction": READING_SYSTEM,
@@ -134,11 +137,13 @@ def score_reading(answers: list[int], answer_key: list[dict]) -> tuple[float, di
     return score, feedback
 
 
-async def run_vocabulary(subtype: str, source_text: str) -> VocabResult:
+async def run_vocabulary(
+    subtype: str, source_text: str, api_key: str | None = None, model: str | None = None
+) -> VocabResult:
     settings = get_settings()
-    client = genai.Client(api_key=settings.gemini_api_key)
+    client = genai.Client(api_key=api_key or settings.gemini_api_key)
     resp = await client.aio.models.generate_content(
-        model=settings.gemini_eval_model,
+        model=model or settings.gemini_eval_model,
         contents=f'USER TEXT:\n"""\n{source_text}\n"""',
         config={
             "system_instruction": vocab_system(subtype),

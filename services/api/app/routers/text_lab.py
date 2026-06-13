@@ -12,6 +12,7 @@ from app.schemas.text_lab import (
     TextExerciseOut,
     VocabularyCreate,
 )
+from app.services.gemini_config import resolve_for_user
 from app.services.text_lab import (
     extract_pdf_text,
     generate_reading_pack,
@@ -69,7 +70,8 @@ async def create_reading(body: ReadingCreate, user: CurrentUser, db: DbSession) 
     source_text = (body.source_text or "").strip()
     if not source_text and body.pdf_base64:
         try:
-            source_text = await extract_pdf_text(body.pdf_base64)
+            cfg = await resolve_for_user(db, user.id)
+            source_text = await extract_pdf_text(body.pdf_base64, cfg.api_key, cfg.eval_model)
         except Exception as exc:
             raise HTTPException(status_code=502, detail=f"PDF extraction failed: {exc}") from exc
     if len(source_text) < 100:
@@ -119,7 +121,8 @@ async def create_vocabulary(
     if not text:
         raise HTTPException(status_code=422, detail="Enter some text")
     try:
-        result = await run_vocabulary(body.subtype, text)
+        cfg = await resolve_for_user(db, user.id)
+        result = await run_vocabulary(body.subtype, text, cfg.api_key, cfg.eval_model)
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Vocabulary scoring failed: {exc}") from exc
 

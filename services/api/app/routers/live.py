@@ -24,6 +24,7 @@ from sqlalchemy import select
 from app.auth import verify_token
 from app.db import get_session_factory
 from app.models import Attempt, Transcript
+from app.services.gemini_config import resolve_for_user
 from app.services.live_transcriber import LiveTranscriber
 
 router = APIRouter(tags=["live"])
@@ -49,13 +50,14 @@ async def live_session(ws: WebSocket, token: str, attempt_id: uuid.UUID) -> None
                 )
             )
         ).scalar_one_or_none()
-    if attempt is None or attempt.status != "recording":
-        await ws.send_json({"type": "error", "detail": "attempt not found or not recording"})
-        await ws.close(code=4404)
-        return
+        if attempt is None or attempt.status != "recording":
+            await ws.send_json({"type": "error", "detail": "attempt not found or not recording"})
+            await ws.close(code=4404)
+            return
+        cfg = await resolve_for_user(db, user.id)
 
     try:
-        async with LiveTranscriber() as transcriber:
+        async with LiveTranscriber(api_key=cfg.api_key, live_model=cfg.live_model) as transcriber:
 
             async def pump_deltas() -> None:
                 async for seg in transcriber.deltas():
