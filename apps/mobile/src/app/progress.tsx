@@ -14,10 +14,17 @@ interface StageSeries {
   delta_vs_first: number | null;
 }
 
+interface DimensionStat {
+  dimension: string;
+  stage: string;
+  average: number;
+}
+
 interface Progress {
   total_attempts: number;
   total_speaking_seconds: number;
   communication_iq: number | null;
+  iq_delta: number | null;
   stages: StageSeries[];
   recent_attempts: {
     attempt_id: string;
@@ -27,7 +34,20 @@ interface Progress {
     overall_score: number | null;
     created_at: string;
   }[];
+  advanced_metrics: Record<string, number | null> | null;
+  detection_counts: Record<string, number>;
+  strengths: DimensionStat[];
+  weaknesses: DimensionStat[];
 }
+
+const METRIC_LABELS: Record<string, string> = {
+  wpm: 'Words / min',
+  filler_rate: 'Filler / 100 words',
+  unique_ratio: 'Vocab variety',
+  avg_sentence_length: 'Avg sentence',
+  reading_ease: 'Readability',
+  questions_per_attempt: 'Questions / attempt',
+};
 
 const STAGE_COLORS: Record<string, string> = {
   thought: '#7C5CFF',
@@ -56,6 +76,11 @@ export default function ProgressScreen() {
         <View style={styles.statBox}>
           <Text style={styles.statValue}>{data?.communication_iq ?? '—'}</Text>
           <Text style={styles.statLabel}>Communication IQ</Text>
+          {data?.iq_delta != null && data.iq_delta !== 0 && (
+            <Text style={[styles.iqDelta, { color: data.iq_delta > 0 ? colors.success : colors.danger }]}>
+              {data.iq_delta > 0 ? '▲' : '▼'} {Math.abs(data.iq_delta)}
+            </Text>
+          )}
         </View>
         <View style={styles.statBox}>
           <Text style={styles.statValue}>{data?.total_attempts ?? '—'}</Text>
@@ -68,6 +93,60 @@ export default function ProgressScreen() {
           <Text style={styles.statLabel}>Minutes spoken</Text>
         </View>
       </View>
+
+      {data?.advanced_metrics && (
+        <View style={styles.metricsCard}>
+          <Text style={styles.cardLabel}>Speaking metrics</Text>
+          <View style={styles.metricGrid}>
+            {Object.entries(data.advanced_metrics)
+              .filter(([, v]) => v != null)
+              .map(([k, v]) => (
+                <View key={k} style={styles.metricItem}>
+                  <Text style={styles.metricValue}>{v}</Text>
+                  <Text style={styles.metricLabel}>{METRIC_LABELS[k] ?? k}</Text>
+                </View>
+              ))}
+          </View>
+        </View>
+      )}
+
+      {data && (data.strengths.length > 0 || data.weaknesses.length > 0) && (
+        <View style={styles.twoCol}>
+          <View style={[styles.dimCard, { flex: 1 }]}>
+            <Text style={[styles.cardLabel, { color: colors.success }]}>Strengths</Text>
+            {data.strengths.map((d, i) => (
+              <Text key={i} style={styles.dimLine}>
+                {d.dimension} <Text style={styles.dimScore}>{d.average.toFixed(1)}</Text>
+              </Text>
+            ))}
+          </View>
+          <View style={[styles.dimCard, { flex: 1 }]}>
+            <Text style={[styles.cardLabel, { color: colors.danger }]}>Work on</Text>
+            {data.weaknesses.map((d, i) => (
+              <Text key={i} style={styles.dimLine}>
+                {d.dimension} <Text style={styles.dimScore}>{d.average.toFixed(1)}</Text>
+              </Text>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {data && Object.keys(data.detection_counts).length > 0 && (
+        <View style={styles.metricsCard}>
+          <Text style={styles.cardLabel}>Habits to watch</Text>
+          <View style={styles.pills}>
+            {Object.entries(data.detection_counts)
+              .sort((a, b) => b[1] - a[1])
+              .map(([name, count]) => (
+                <View key={name} style={styles.pill}>
+                  <Text style={styles.pillText}>
+                    {name.replace(/_/g, ' ')} ×{count}
+                  </Text>
+                </View>
+              ))}
+          </View>
+        </View>
+      )}
 
       {(data?.stages ?? []).filter((s) => s.points.length > 0).map((s) => (
         <View key={s.stage} style={styles.stageCard}>
@@ -139,6 +218,34 @@ const styles = StyleSheet.create({
   },
   statValue: { fontSize: 24, fontWeight: '800', color: colors.text },
   statLabel: { fontSize: 11, color: colors.textDim, textAlign: 'center' },
+  iqDelta: { fontSize: 12, fontWeight: '700' },
+  cardLabel: { color: colors.accent, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
+  metricsCard: {
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 14,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  metricGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  metricItem: { width: '28%', gap: 2 },
+  metricValue: { fontSize: 20, fontWeight: '800', color: colors.text },
+  metricLabel: { fontSize: 11, color: colors.textDim },
+  twoCol: { flexDirection: 'row', gap: spacing.sm },
+  dimCard: {
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 14,
+    padding: spacing.md,
+    gap: 6,
+  },
+  dimLine: { color: colors.text, fontSize: 13, textTransform: 'capitalize' },
+  dimScore: { color: colors.textDim, fontWeight: '700' },
+  pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  pill: { backgroundColor: colors.bg, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4 },
+  pillText: { color: colors.danger, fontSize: 12, fontWeight: '600', textTransform: 'capitalize' },
   stageCard: {
     backgroundColor: colors.card,
     borderWidth: 1,

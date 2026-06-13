@@ -95,13 +95,15 @@ Legend: ✅ done · 🚧 in progress · ⬜ not started · 🙋 needs user actio
 - ⬜ Deeper vocabulary tracking (unique words / overused words across speech transcripts) → moved to M9 analytics
 - 🙋 Manual on-device test: paste an article, take the quiz; run a vocab drill
 
-## M9 — Personal Model + Analytics (= PRD Phase 7 Communication Twin + Phase 8 Analytics)
+## M9 — Personal Model + Analytics (= PRD Phase 7 Communication Twin + Phase 8 Analytics) ✅
 *Insight: Phase 7 is the data layer, Phase 8 is its dashboard — one milestone, two surfaces.*
-- ⬜ Per-attempt computed metrics: WPM, filler words, unique vocabulary, avg sentence length, pause distribution (from live transcript segment timings), question/story/example usage
-- ⬜ Detection flags in the evaluator output: rambling, jargon, tangents, weak arguments, circular logic, overexplaining
-- ⬜ pgvector memory: embed attempt summaries + recurring topics → injected into evaluation prompts for personalized feedback ("you've been rambling less than last week")
-- ⬜ Communication IQ: weighted composite of all stage scores, Day 1 vs 30 vs 90
-- ⬜ Analytics dashboard: trendlines per stage, dimension radar, advanced metrics, weekly/monthly growth
+- ✅ migration 0004: `communication_metrics` + `memory_embeddings` (pgvector 768d)
+- ✅ Per-attempt deterministic metrics (`metrics.py`): WPM, filler count/rate, unique vocab + type-token ratio, avg sentence length, Flesch reading ease, question count, long-pause count (from live segment gaps) — computed at evaluation time
+- ✅ Detection flags surfaced (evaluator `detections`) → "Habits to watch" frequency on dashboard
+- ✅ pgvector memory (`memory.py`): each evaluated attempt embedded (gemini-embedding-001) as a memory line; on each new evaluation, top-K relevant memories retrieved and injected into the prompt → personalized, history-aware feedback. Best-effort (never blocks evaluation)
+- ✅ Communication IQ + iq_delta (early-vs-late thirds); advanced-metric averages; dimension strengths/weaknesses; detection counts — all in `/me/progress`
+- ✅ Analytics dashboard: IQ w/ delta, speaking-metrics grid, strengths/work-on, habits-to-watch pills, stage trendlines (comprehension + vocabulary + social included)
+- ✅ E2E verified: metrics persisted, memory stored+retrieved across two attempts, analytics populated; dashboard rendered in sim
 
 ## M10 — Live Coach (= PRD Phase 9)
 *Builds directly on M2 streaming + M9 metrics, computed in real time.*

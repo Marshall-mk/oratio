@@ -65,8 +65,19 @@ detections (rambling, jargon, defensiveness, weak_arguments, overexplaining,
 etc.). Be specific and cite the conversation."""
 
 
+def history_context(history: list[str]) -> str:
+    if not history:
+        return ""
+    lines = "\n".join(f"- {h}" for h in history)
+    return (
+        "THIS SPEAKER'S RECENT HISTORY (use it to personalize feedback — note "
+        "patterns, and whether they are improving or repeating mistakes; reference "
+        "it concretely when relevant):\n" + lines
+    )
+
+
 def build_roleplay_prompt(
-    challenge: Challenge, profile: Profile | None, transcript: str
+    challenge: Challenge, profile: Profile | None, transcript: str, history: list[str] | None = None
 ) -> str:
     persona = challenge.persona or {}
     return (
@@ -75,6 +86,7 @@ def build_roleplay_prompt(
         f"THE PERSONA: {persona.get('name', 'an AI character')} — "
         f"{persona.get('instruction', '')}\n\n"
         f"{speaker_context(profile)}\n\n"
+        f"{history_context(history or [])}\n\n"
         f"CONVERSATION TRANSCRIPT (evaluate the USER turns):\n"
         f'"""\n{transcript}\n"""'
     )
@@ -120,7 +132,11 @@ def speaker_context(profile: Profile | None) -> str:
 
 
 def build_evaluation_prompt(
-    challenge: Challenge, profile: Profile | None, transcript: str, duration_seconds: float | None
+    challenge: Challenge,
+    profile: Profile | None,
+    transcript: str,
+    duration_seconds: float | None,
+    history: list[str] | None = None,
 ) -> str:
     duration_note = (
         f"\nActual speaking time: {duration_seconds:.0f}s." if duration_seconds else ""
@@ -128,6 +144,7 @@ def build_evaluation_prompt(
     return (
         f"{challenge_context(challenge)}\n\n"
         f"{speaker_context(profile)}\n\n"
+        f"{history_context(history or [])}\n\n"
         f"TRANSCRIPT OF THE ATTEMPT:{duration_note}\n"
         f'"""\n{transcript}\n"""'
     )

@@ -5,8 +5,18 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from sqlalchemy import select
 
+from collections import Counter, defaultdict
+
 from app.deps import CurrentUser, DbSession
-from app.models import Attempt, Challenge, FeedbackReport, Score, Session, TextExercise
+from app.models import (
+    Attempt,
+    Challenge,
+    CommunicationMetric,
+    FeedbackReport,
+    Score,
+    Session,
+    TextExercise,
+)
 
 router = APIRouter(prefix="/me", tags=["progress"])
 
@@ -29,12 +39,23 @@ class StageSeries(BaseModel):
     delta_vs_first: float | None
 
 
+class DimensionStat(BaseModel):
+    dimension: str
+    stage: str
+    average: float
+
+
 class ProgressOut(BaseModel):
     total_attempts: int
     total_speaking_seconds: float
     communication_iq: float | None  # mean of stage averages, 0-100 scale
+    iq_delta: float | None  # IQ change vs the speaker's early attempts
     stages: list[StageSeries]
     recent_attempts: list[AttemptSummary]
+    advanced_metrics: dict | None  # averaged communication metrics
+    detection_counts: dict[str, int]  # how often each anti-pattern appears
+    strengths: list[DimensionStat]  # top dimensions across all attempts
+    weaknesses: list[DimensionStat]  # bottom dimensions across all attempts
 
 
 @router.get("/progress", response_model=ProgressOut)
@@ -128,6 +149,56 @@ async def get_progress(user: CurrentUser, db: DbSession) -> ProgressOut:
     averages = [s.average for s in stages if s.average is not None]
     communication_iq = round((sum(averages) / len(averages)) * 10, 0) if averages else None
 
+    # IQ delta: compare mean overall of the first third vs the last third of attempts.
+    iq_delta = None
+    overalls = [overall_by_attempt[a.Attempt.id] for a in attempts if a.Attempt.id in overall_by_attempt]
+    if len(overalls) >= 4:
+        third = max(len(overalls) // 3, 1)
+        early = sum(overalls[:third]) / third
+        late = sum(overalls[-third:]) / third
+        iq_delta = round((late - early) * 10, 0)
+
+    # Advanced metrics: averages over the speaker's communication_metrics.
+    metric_rows = (
+        (await db.execute(select(CommunicationMetric).where(CommunicationMetric.user_id == user_id)))
+        .scalars()
+        .all()
+    )
+    advanced_metrics = None
+    if metric_rows:
+        def _avg(field: str) -> float | None:
+            vals = [float(getattr(m, field)) for m in metric_rows if getattr(m, field) is not None]
+            return round(sum(vals) / len(vals), 1) if vals else None
+
+        advanced_metrics = {
+            "wpm": _avg("wpm"),
+            "filler_rate": _avg("filler_rate"),
+            "unique_ratio": _avg("unique_ratio"),
+            "avg_sentence_length": _avg("avg_sentence_length"),
+            "reading_ease": _avg("reading_ease"),
+            "questions_per_attempt": _avg("question_count"),
+        }
+
+    # Detection frequencies across all feedback reports.
+    detection_counter: Counter = Counter()
+    for r in reports:
+        for d in (r.raw_response or {}).get("detections", []):
+            detection_counter[d] += 1
+
+    # Dimension strengths/weaknesses: average score per (stage, dimension).
+    dim_totals: dict[tuple[str, str], list[float]] = defaultdict(list)
+    for s in scores:
+        for d in s.dimensions or []:
+            dim_totals[(s.stage, d["dimension"])].append(float(d["score"]))
+    dim_stats = [
+        DimensionStat(stage=stage, dimension=dim, average=round(sum(v) / len(v), 1))
+        for (stage, dim), v in dim_totals.items()
+        if len(v) >= 1
+    ]
+    dim_stats.sort(key=lambda x: x.average, reverse=True)
+    strengths = dim_stats[:3]
+    weaknesses = sorted(dim_stats, key=lambda x: x.average)[:3]
+
     recent = [
         AttemptSummary(
             attempt_id=str(a.Attempt.id),
@@ -147,6 +218,11 @@ async def get_progress(user: CurrentUser, db: DbSession) -> ProgressOut:
             sum(float(a.Attempt.duration_seconds or 0) for a in attempts)
         ),
         communication_iq=communication_iq,
+        iq_delta=iq_delta,
         stages=stages,
         recent_attempts=recent,
+        advanced_metrics=advanced_metrics,
+        detection_counts=dict(detection_counter),
+        strengths=strengths,
+        weaknesses=weaknesses,
     )
