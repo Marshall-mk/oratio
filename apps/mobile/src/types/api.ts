@@ -17,10 +17,13 @@ export interface Challenge {
   slug: string;
   title: string;
   prompt: string;
-  category: 'thought' | 'structure' | 'speaking';
+  category: 'thought' | 'structure' | 'speaking' | 'scenario';
   framework: string | null;
   difficulty: 'beginner' | 'intermediate' | 'advanced' | 'expert';
   prep_seconds: number;
   max_speak_seconds: number;
   tags: string[];
+  mode: 'monologue' | 'roleplay';
+  persona_name: string | null;
+  persona_opener: string | null;
 }

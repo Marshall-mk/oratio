@@ -81,7 +81,7 @@ async def get_progress(user: CurrentUser, db: DbSession) -> ProgressOut:
     challenge_by_id = {c.id: c for c in challenges}
 
     stages: list[StageSeries] = []
-    for stage in ("thought", "structure", "delivery"):
+    for stage in ("thought", "structure", "delivery", "social"):
         points = [
             scores_by_attempt[a.Attempt.id][stage]
             for a in attempts

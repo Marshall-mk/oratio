@@ -21,6 +21,7 @@ const STAGE_LABELS: Record<string, string> = {
   thought: 'Thought',
   structure: 'Structure',
   delivery: 'Delivery',
+  social: 'Social',
 };
 
 function scoreColor(score: number): string {

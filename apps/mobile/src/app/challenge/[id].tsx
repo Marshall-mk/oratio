@@ -56,6 +56,15 @@ export default function ChallengeDetail() {
         </View>
       )}
 
+      {challenge.mode === 'roleplay' && challenge.persona_name && (
+        <View style={styles.hintCard}>
+          <Text style={styles.hintLabel}>You'll talk with {challenge.persona_name}</Text>
+          {challenge.persona_opener && (
+            <Text style={styles.hint}>“{challenge.persona_opener}”</Text>
+          )}
+        </View>
+      )}
+
       <View style={styles.metaRow}>
         <View style={styles.metaBox}>
           <Text style={styles.metaValue}>{challenge.prep_seconds}s</Text>
@@ -72,8 +81,8 @@ export default function ChallengeDetail() {
       </View>
 
       <Button
-        title="Start speaking"
-        onPress={() => startSession.mutate(challenge.id)}
+        title={challenge.mode === 'roleplay' ? 'Start conversation' : 'Start speaking'}
+        onPress={() => startSession.mutate({ challengeId: challenge.id, mode: challenge.mode })}
         loading={startSession.isPending}
       />
     </ScrollView>

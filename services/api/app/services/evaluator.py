@@ -10,8 +10,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import get_settings
 from app.db import get_session_factory
 from app.models import Attempt, Challenge, FeedbackReport, Profile, Score, Session, Transcript
-from app.schemas.evaluation import EvaluationResult, StageEvaluation
-from app.services.prompts import BASE_RUBRIC, build_evaluation_prompt
+from app.schemas.evaluation import (
+    EvaluationResult,
+    RoleplayEvaluationResult,
+    StageEvaluation,
+)
+from app.services.prompts import (
+    BASE_RUBRIC,
+    ROLEPLAY_RUBRIC,
+    build_evaluation_prompt,
+    build_roleplay_prompt,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -42,9 +51,15 @@ async def _evaluate(db: AsyncSession, attempt_id: uuid.UUID) -> None:
     challenge = await db.get(Challenge, session.challenge_id)
     profile = await db.get(Profile, attempt.user_id)
 
-    result = await _call_gemini(challenge, profile, transcript.full_text, attempt)
+    is_roleplay = challenge.mode == "roleplay"
+    result = await _call_gemini(challenge, profile, transcript.full_text, attempt, is_roleplay)
 
-    for stage_name in ("thought", "structure", "delivery"):
+    stage_names = ("thought", "structure", "delivery", "social") if is_roleplay else (
+        "thought",
+        "structure",
+        "delivery",
+    )
+    for stage_name in stage_names:
         stage: StageEvaluation = getattr(result, stage_name)
         db.add(
             Score(
@@ -58,7 +73,8 @@ async def _evaluate(db: AsyncSession, attempt_id: uuid.UUID) -> None:
             )
         )
 
-    overall = round((result.thought.score + result.structure.score + result.delivery.score) / 3, 1)
+    stage_scores = [getattr(result, s).score for s in stage_names]
+    overall = round(sum(stage_scores) / len(stage_scores), 1)
     db.add(
         FeedbackReport(
             id=uuid.uuid4(),
@@ -85,21 +101,28 @@ async def _call_gemini(
     profile: Profile | None,
     transcript_text: str,
     attempt: Attempt,
-) -> EvaluationResult:
+    is_roleplay: bool = False,
+) -> EvaluationResult | RoleplayEvaluationResult:
     settings = get_settings()
     client = genai.Client(api_key=settings.gemini_api_key)
-    duration = float(attempt.duration_seconds) if attempt.duration_seconds else None
+    if is_roleplay:
+        system, schema = ROLEPLAY_RUBRIC, RoleplayEvaluationResult
+        prompt = build_roleplay_prompt(challenge, profile, transcript_text)
+    else:
+        duration = float(attempt.duration_seconds) if attempt.duration_seconds else None
+        system, schema = BASE_RUBRIC, EvaluationResult
+        prompt = build_evaluation_prompt(challenge, profile, transcript_text, duration)
     response = await client.aio.models.generate_content(
         model=settings.gemini_eval_model,
-        contents=build_evaluation_prompt(challenge, profile, transcript_text, duration),
+        contents=prompt,
         config={
-            "system_instruction": BASE_RUBRIC,
+            "system_instruction": system,
             "response_mime_type": "application/json",
-            "response_schema": EvaluationResult,
+            "response_schema": schema,
             "temperature": 0.3,
         },
     )
     parsed = response.parsed
-    if not isinstance(parsed, EvaluationResult):
+    if not isinstance(parsed, schema):
         raise ValueError(f"Gemini returned unparseable evaluation: {response.text[:200]}")
     return parsed

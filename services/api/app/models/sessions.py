@@ -59,5 +59,6 @@ class Transcript(Base):
     full_text: Mapped[str] = mapped_column(Text)
     segments: Mapped[list] = mapped_column(JSONB, default=list)
     word_count: Mapped[int | None] = mapped_column(Integer)
+    turn_count: Mapped[int | None] = mapped_column(Integer)
     source: Mapped[str] = mapped_column(Text, default="gemini_live")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

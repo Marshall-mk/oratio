@@ -4,7 +4,7 @@ from fastapi import FastAPI
 
 from app.config import get_settings
 from app.db import dispose_engine, init_engine
-from app.routers import challenges, live, profiles, progress, sessions
+from app.routers import challenges, live, profiles, progress, roleplay_ws, sessions
 
 
 @asynccontextmanager
@@ -21,6 +21,7 @@ app.include_router(challenges.router)
 app.include_router(sessions.router)
 app.include_router(progress.router)
 app.include_router(live.router)
+app.include_router(roleplay_ws.router)
 
 
 @app.get("/health")

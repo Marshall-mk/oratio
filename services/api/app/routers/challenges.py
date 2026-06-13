@@ -21,9 +21,13 @@ class ChallengeOut(BaseModel):
     prep_seconds: int
     max_speak_seconds: int
     tags: list[str]
+    mode: str
+    persona_name: str | None = None
+    persona_opener: str | None = None
 
 
 def _to_out(c: Challenge) -> ChallengeOut:
+    persona = c.persona or {}
     return ChallengeOut(
         id=str(c.id),
         slug=c.slug,
@@ -35,6 +39,9 @@ def _to_out(c: Challenge) -> ChallengeOut:
         prep_seconds=c.prep_seconds,
         max_speak_seconds=c.max_speak_seconds,
         tags=c.tags or [],
+        mode=c.mode,
+        persona_name=persona.get("name"),
+        persona_opener=persona.get("opener"),
     )
 
 

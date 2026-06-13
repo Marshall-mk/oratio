@@ -42,7 +42,7 @@ interface AttemptDetail {
   previous_scores: StageScore[];
 }
 
-const STAGE_ORDER = ['thought', 'structure', 'delivery'];
+const STAGE_ORDER = ['thought', 'structure', 'delivery', 'social'];
 
 export default function ResultsScreen() {
   const { attemptId, challengeId } = useLocalSearchParams<{
@@ -193,7 +193,13 @@ export default function ResultsScreen() {
                 onPress={() =>
                   attempt &&
                   challengeId &&
-                  retry.mutate({ sessionId: attempt.session_id, challengeId })
+                  retry.mutate({
+                    sessionId: attempt.session_id,
+                    challengeId,
+                    mode: attempt.scores.some((s) => s.stage === 'social')
+                      ? 'roleplay'
+                      : 'monologue',
+                  })
                 }
               />
             </View>

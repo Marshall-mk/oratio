@@ -12,7 +12,10 @@ const CATEGORY_META: Record<Challenge['category'], { label: string; blurb: strin
   thought: { label: 'Thought Gym', blurb: 'Sharpen reasoning and idea generation' },
   structure: { label: 'Structure Gym', blurb: 'Organize ideas with proven frameworks' },
   speaking: { label: 'Speaking Gym', blurb: 'Deliver with clarity and confidence' },
+  scenario: { label: 'Scenario Gym', blurb: 'Live roleplay with an AI persona' },
 };
+
+const CATEGORY_ORDER = ['scenario', 'thought', 'structure', 'speaking'] as const;
 
 export default function Home() {
   const router = useRouter();
@@ -46,27 +49,35 @@ export default function Home() {
 
       {isLoading && <Text style={styles.sub}>Loading challenges…</Text>}
 
-      {(['thought', 'structure', 'speaking'] as const).map((cat) => (
-        <View key={cat} style={styles.section}>
-          <Text style={styles.sectionTitle}>{CATEGORY_META[cat].label}</Text>
-          <Text style={styles.sectionBlurb}>{CATEGORY_META[cat].blurb}</Text>
-          {byCategory(cat).map((c) => (
-            <Pressable
-              key={c.id}
-              style={({ pressed }) => [styles.card, pressed && { opacity: 0.8 }]}
-              onPress={() => router.push(`/challenge/${c.id}`)}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.cardTitle}>{c.title}</Text>
-                <Text style={styles.cardMeta}>
-                  {c.difficulty} · {Math.round(c.max_speak_seconds / 60) || 1} min
-                  {c.framework ? ` · ${c.framework.toUpperCase()}` : ''}
-                </Text>
-              </View>
-              <Text style={styles.chevron}>›</Text>
-            </Pressable>
-          ))}
-        </View>
-      ))}
+      {CATEGORY_ORDER.map((cat) => {
+        const items = byCategory(cat);
+        if (items.length === 0) return null;
+        return (
+          <View key={cat} style={styles.section}>
+            <Text style={styles.sectionTitle}>{CATEGORY_META[cat].label}</Text>
+            <Text style={styles.sectionBlurb}>{CATEGORY_META[cat].blurb}</Text>
+            {items.map((c) => (
+              <Pressable
+                key={c.id}
+                style={({ pressed }) => [styles.card, pressed && { opacity: 0.8 }]}
+                onPress={() => router.push(`/challenge/${c.id}`)}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.cardTitle}>{c.title}</Text>
+                  <Text style={styles.cardMeta}>
+                    {c.difficulty} · {Math.round(c.max_speak_seconds / 60) || 1} min
+                    {c.mode === 'roleplay' && c.persona_name
+                      ? ` · with ${c.persona_name}`
+                      : c.framework
+                        ? ` · ${c.framework.toUpperCase()}`
+                        : ''}
+                  </Text>
+                </View>
+                <Text style={styles.chevron}>›</Text>
+              </Pressable>
+            ))}
+          </View>
+        );
+      })}
     </ScrollView>
   );
 }

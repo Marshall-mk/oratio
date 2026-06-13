@@ -22,5 +22,7 @@ class Challenge(Base):
     max_speak_seconds: Mapped[int] = mapped_column(Integer, default=120)
     evaluation_focus: Mapped[dict] = mapped_column(JSONB, default=dict)
     tags: Mapped[list[str]] = mapped_column(ARRAY(Text), default=list)
+    mode: Mapped[str] = mapped_column(Text, default="monologue")  # monologue | roleplay
+    persona: Mapped[dict | None] = mapped_column(JSONB)  # {name, voice, instruction, opener}
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

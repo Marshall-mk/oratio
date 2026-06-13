@@ -33,6 +33,7 @@ const STAGE_COLORS: Record<string, string> = {
   thought: '#7C5CFF',
   structure: '#3DDC97',
   delivery: '#E8B931',
+  social: '#FF7AB6',
 };
 
 export default function ProgressScreen() {
@@ -66,7 +67,7 @@ export default function ProgressScreen() {
         </View>
       </View>
 
-      {(data?.stages ?? []).map((s) => (
+      {(data?.stages ?? []).filter((s) => s.points.length > 0).map((s) => (
         <View key={s.stage} style={styles.stageCard}>
           <View style={styles.stageHeader}>
             <Text style={styles.stageName}>{s.stage}</Text>

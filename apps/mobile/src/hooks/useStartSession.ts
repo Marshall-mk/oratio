@@ -15,21 +15,21 @@ interface AttemptOut {
   status: string;
 }
 
-/** Create a session + first attempt for a challenge, then open the recording screen. */
+/** Create a session + first attempt, then open the right screen for the mode. */
 export function useStartSession() {
   const router = useRouter();
   return useMutation({
-    mutationFn: async (challengeId: string) => {
+    mutationFn: async (input: { challengeId: string; mode: 'monologue' | 'roleplay' }) => {
       const session = await api<SessionOut>('/sessions', {
         method: 'POST',
-        body: JSON.stringify({ challenge_id: challengeId }),
+        body: JSON.stringify({ challenge_id: input.challengeId }),
       });
       return api<AttemptOut>(`/sessions/${session.id}/attempts`, { method: 'POST' });
     },
-    onSuccess: (attempt, challengeId) => {
+    onSuccess: (attempt, input) => {
       router.push({
-        pathname: '/session/[attemptId]',
-        params: { attemptId: attempt.id, challengeId },
+        pathname: input.mode === 'roleplay' ? '/roleplay/[attemptId]' : '/session/[attemptId]',
+        params: { attemptId: attempt.id, challengeId: input.challengeId },
       });
     },
   });
@@ -39,11 +39,14 @@ export function useStartSession() {
 export function useRetryAttempt() {
   const router = useRouter();
   return useMutation({
-    mutationFn: async (input: { sessionId: string; challengeId: string }) =>
-      api<AttemptOut>(`/sessions/${input.sessionId}/attempts`, { method: 'POST' }),
+    mutationFn: async (input: {
+      sessionId: string;
+      challengeId: string;
+      mode: 'monologue' | 'roleplay';
+    }) => api<AttemptOut>(`/sessions/${input.sessionId}/attempts`, { method: 'POST' }),
     onSuccess: (attempt, input) => {
       router.replace({
-        pathname: '/session/[attemptId]',
+        pathname: input.mode === 'roleplay' ? '/roleplay/[attemptId]' : '/session/[attemptId]',
         params: { attemptId: attempt.id, challengeId: input.challengeId },
       });
     },

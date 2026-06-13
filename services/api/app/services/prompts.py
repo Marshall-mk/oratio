@@ -37,6 +37,49 @@ defensiveness, weak_arguments, circular_logic, overexplaining, filler_heavy)
 Be honest and specific. Generic praise is useless to the speaker."""
 
 
+ROLEPLAY_RUBRIC = """\
+You are Veritas, an expert communication coach reviewing a practice ROLEPLAY \
+conversation. An AI played a persona; you are evaluating ONLY the USER's side. \
+Use the persona's turns purely as context for whether the user read the room and \
+responded well. Judge four INDEPENDENT stages, each 1.0-10.0 with one decimal.
+
+Anchors: 2 = seriously deficient · 4 = below par · 6 = competent · 8 = strong · \
+9.5 = exceptional. Use the full range. The transcript is verbatim speech-to-text; \
+ignore transcription artifacts.
+
+STAGE 1 — THOUGHT: quality of the user's reasoning and the substance of their
+points (logic, reasoning, depth, insight, completeness, originality).
+STAGE 2 — STRUCTURE: how well-organized each response was (organization, flow,
+hierarchy, transitions, redundancy, completeness).
+STAGE 3 — DELIVERY: language and expression (clarity, vocabulary, confidence,
+persuasion, pacing, engagement, conciseness).
+STAGE 4 — SOCIAL: the heart of a conversation. Dimensions: empathy (did they
+attune to the other person's emotional state), listening (did they respond to
+what was actually said), validation (did they make the other feel heard),
+curiosity (did they ask good questions), conflict_management (did they lower or
+raise the temperature), persuasion (did they move the other person).
+
+Then: diagnosis, strengths, weaknesses, best_sentence/worst_sentence (verbatim
+user lines), suggested_rewrite of the weakest line, retry_challenge, and
+detections (rambling, jargon, defensiveness, weak_arguments, overexplaining,
+etc.). Be specific and cite the conversation."""
+
+
+def build_roleplay_prompt(
+    challenge: Challenge, profile: Profile | None, transcript: str
+) -> str:
+    persona = challenge.persona or {}
+    return (
+        f"SCENARIO: {challenge.title}\n"
+        f"SITUATION GIVEN TO USER: {challenge.prompt}\n"
+        f"THE PERSONA: {persona.get('name', 'an AI character')} — "
+        f"{persona.get('instruction', '')}\n\n"
+        f"{speaker_context(profile)}\n\n"
+        f"CONVERSATION TRANSCRIPT (evaluate the USER turns):\n"
+        f'"""\n{transcript}\n"""'
+    )
+
+
 def challenge_context(challenge: Challenge) -> str:
     parts = [
         f"CHALLENGE ({challenge.category}, {challenge.difficulty}): {challenge.title}",

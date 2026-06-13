@@ -52,3 +52,22 @@ class EvaluationResult(BaseModel):
             "overexplaining, filler_heavy. Empty list if none."
         ),
     )
+
+
+class RoleplayEvaluationResult(BaseModel):
+    """Evaluation of the USER's side of a roleplay conversation. Adds a social stage."""
+
+    thought: StageEvaluation
+    structure: StageEvaluation
+    delivery: StageEvaluation
+    social: StageEvaluation  # empathy, listening, validation, curiosity, conflict_management, persuasion
+    diagnosis: str = Field(
+        description="The single most useful cross-stage insight about how they handled the conversation"
+    )
+    strengths: list[str] = Field(min_length=2, max_length=4)
+    weaknesses: list[str] = Field(min_length=2, max_length=4)
+    best_sentence: SentenceFeedback = Field(description="Their most effective line in the conversation")
+    worst_sentence: SentenceFeedback = Field(description="Their least effective line")
+    suggested_rewrite: str = Field(description="A better way to phrase their weakest line")
+    retry_challenge: str = Field(description="One specific instruction for the next attempt")
+    detections: list[str] = Field(default_factory=list)

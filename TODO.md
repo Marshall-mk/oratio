@@ -75,11 +75,14 @@ Legend: ✅ done · 🚧 in progress · ⬜ not started · 🙋 needs user actio
 
 ## M7 — Scenario Gym (= PRD Phase 3 Communication Gym + Phase 6 Social Intelligence)
 *Insight: Phase 3 is mostly new CONTENT for the existing loop; Phase 6 is the same loop with an AI interlocutor + social scoring.*
-- ⬜ Challenge `mode` field: `monologue` (current) | `roleplay` (AI persona responds)
-- ⬜ ~40 new challenges across Phase 3 modes (debate, teaching, leadership, networking, interview, conflict, sales, persuasion) × 4 difficulty tiers
-- ⬜ Roleplay engine: same Gemini Live WS pipeline, silent-listener instruction replaced by persona instruction; model audio streamed back to phone
-- ⬜ Social scenarios (difficult friend, negotiation, workplace conflict, supervisor conversation) as roleplay challenges
-- ⬜ 4th evaluation stage `social` (empathy, listening, validation, curiosity, conflict management) — only scored for roleplay attempts (scores table already takes a stage discriminator)
+- ✅ Spike: Gemini Live as a responding PERSONA (manual turn control, dual transcription, 24kHz audio back) VALIDATED
+- ✅ Migration 0002: challenge `mode` (monologue|roleplay) + `persona` jsonb; `scenario` category; `social` score stage; transcript `turn_count`
+- ✅ 15 new challenges: 10 roleplay scenarios (VC pitch, salary negotiation, interview, sales, difficult friend, relationship/workplace conflict, supervisor, networking) + 5 monologue Phase-3 (debate, leadership, teaching, conflict, storytelling)
+- ✅ Roleplay engine (`RoleplayConductor`): persistent Live session, persona instruction + voice, manual activity boundaries (no barge-in), opener delivery, multi-turn conversation
+- ✅ WS `/ws/roleplay-session`: multi-turn protocol, persona audio (base64 WAV) streamed back, conversation transcript persisted with roles → evaluation
+- ✅ 4th evaluation stage `social` (empathy, listening, validation, curiosity, conflict_management, persuasion) — roleplay-only, separate rubric/schema
+- ✅ Mobile: roleplay session screen (conversation thread, persona audio playback, turn control), challenge detail persona intro, home Scenario Gym section, results 4th score card, progress social trendline
+- 🚧 E2E verification (backend roleplay loop tested; on-device manual test pending)
 
 ## M8 — Text Lab (= PRD Phase 4 Vocabulary Academy + Phase 5 Reading Comprehension)
 *Insight: both are text-in/text-out exercise engines — no voice pipeline involved.*
