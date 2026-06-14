@@ -18,6 +18,7 @@ export interface Challenge {
   title: string;
   prompt: string;
   category: 'thought' | 'structure' | 'speaking' | 'scenario' | 'coach';
+  subcategory: string | null;
   framework: string | null;
   difficulty: 'beginner' | 'intermediate' | 'advanced' | 'expert';
   prep_seconds: number;

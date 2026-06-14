@@ -37,11 +37,6 @@ values
  'thought', null, 'advanced', 60, 180,
  '{"thought": {"logic": 1.4, "insight": 1.3}}', '{argument-builder}'),
 
-('first-principles-traffic', 'First Principles: Traffic Jams',
- 'Why do traffic jams exist? Reason from first principles — break the problem down to fundamentals before proposing causes.',
- 'thought', null, 'intermediate', 30, 150,
- '{"thought": {"reasoning": 1.5, "depth": 1.4}}', '{first-principles}'),
-
 ('first-principles-your-field', 'First Principles: Your Field',
  'Pick a core practice or tool from your own field and explain, from first principles, why it exists at all.',
  'thought', null, 'advanced', 60, 180,

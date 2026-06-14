@@ -6,6 +6,7 @@ from sqlalchemy import select
 
 from app.deps import CurrentUser, DbSession
 from app.models import Challenge
+from app.services.drill_generator import generate_drill
 
 router = APIRouter(prefix="/challenges", tags=["challenges"])
 
@@ -16,6 +17,7 @@ class ChallengeOut(BaseModel):
     title: str
     prompt: str
     category: str
+    subcategory: str | None
     framework: str | None
     difficulty: str
     prep_seconds: int
@@ -34,6 +36,7 @@ def _to_out(c: Challenge) -> ChallengeOut:
         title=c.title,
         prompt=c.prompt,
         category=c.category,
+        subcategory=c.subcategory,
         framework=c.framework,
         difficulty=c.difficulty,
         prep_seconds=c.prep_seconds,
@@ -54,6 +57,21 @@ async def list_challenges(
         query = query.where(Challenge.category == category)
     result = await db.execute(query)
     return [_to_out(c) for c in result.scalars().all()]
+
+
+class GenerateIn(BaseModel):
+    category: str
+    group: str  # subcategory key (thought/structure) or difficulty level (scenario/speaking)
+
+
+@router.post("/generate", response_model=ChallengeOut)
+async def generate(body: GenerateIn, user: CurrentUser, db: DbSession) -> ChallengeOut:
+    """AI-generate a fresh, profile-personalized drill for the given group."""
+    try:
+        challenge = await generate_drill(db, uuid.UUID(user.id), body.category, body.group)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Couldn't generate a drill: {exc}") from exc
+    return _to_out(challenge)
 
 
 @router.get("/{challenge_id}", response_model=ChallengeOut)
