@@ -24,6 +24,7 @@ const CATEGORIES: Category[] = [
   { key: 'structure', label: 'Structure', blurb: 'Organize ideas', icon: 'git-branch' },
   { key: 'speaking', label: 'Speaking', blurb: 'Clarity & delivery', icon: 'megaphone' },
   { key: 'text', label: 'Text Lab', blurb: 'Reading & vocab', icon: 'book' },
+  { key: 'debate', label: 'Debate', blurb: 'Compete with friends', icon: 'trophy' },
 ];
 
 export default function Gym() {
@@ -38,6 +39,7 @@ export default function Gym() {
 
   function count(key: string): string {
     if (key === 'text') return '2 tools';
+    if (key === 'debate') return 'Group game';
     const n = (challenges ?? []).filter((c) => c.category === key).length;
     return `${n} ${n === 1 ? 'drill' : 'drills'}`;
   }
@@ -56,7 +58,7 @@ export default function Gym() {
           <Pressable
             key={cat.key}
             style={({ pressed }) => [styles.tile, pressed && { opacity: 0.8 }]}
-            onPress={() => router.push(`/gym/${cat.key}`)}>
+            onPress={() => router.push(cat.key === 'debate' ? '/debate' : `/gym/${cat.key}`)}>
             <View style={[styles.iconChip, { backgroundColor: c.primaryMuted }]}>
               <Ionicons name={cat.icon} size={24} color={c.primary} />
             </View>
