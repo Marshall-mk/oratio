@@ -79,8 +79,8 @@ export function DrillWheel({ drills, noun = 'drill', category, group, aiRandom =
         ) : (
           <Text style={styles.previewPrompt}>
             {aiRandom
-              ? `✨ We'll create a fresh ${noun} just for you, based on your profile.`
-              : `🎲 We'll pick a ${noun} for you.`}
+              ? `We'll create a fresh ${noun} just for you, based on your profile.`
+              : `We'll pick a ${noun} for you.`}
           </Text>
         )}
       </View>

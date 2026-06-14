@@ -112,7 +112,7 @@ export default function DebatePlay() {
     return (
       <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
         <Text style={styles.kicker}>Winner</Text>
-        <Text style={styles.winner}>🏆 {result.winner}</Text>
+        <Text style={styles.winner}>{result.winner}</Text>
         {result.winning_side && <Text style={styles.side}>Winning side: {result.winning_side}</Text>}
         <Text style={styles.rationale}>{result.rationale}</Text>
 
