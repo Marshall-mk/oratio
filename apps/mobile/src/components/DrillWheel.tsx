@@ -72,9 +72,7 @@ export function DrillWheel({ drills, noun = 'drill', category, group, aiRandom =
                 ? ` · with ${selected.persona_name}`
                 : ''}
             </Text>
-            <Text style={styles.previewPrompt} numberOfLines={3}>
-              {selected.prompt}
-            </Text>
+            <Text style={styles.previewPrompt}>{selected.prompt}</Text>
           </>
         ) : (
           <Text style={styles.previewPrompt}>
