@@ -21,30 +21,66 @@ docs/           Architecture notes
 
 ## Running locally
 
-### Backend
+Prereqs: [Docker Desktop](https://www.docker.com/), the [Supabase CLI](https://supabase.com/docs/guides/cli), [`uv`](https://github.com/astral-sh/uv), Node, and Xcode (for the iOS simulator).
+
+### First-time setup
 
 ```bash
+# 1. Local Supabase stack (Postgres + Auth + Storage in Docker)
+supabase start                       # prints local URL + anon/service keys
+psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f supabase/seed.sql
+psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f supabase/seed_0002_scenarios.sql
+psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f supabase/seed_0005_coach.sql
+
+# 2. Backend deps + env
 cd services/api
-cp .env.example .env   # fill in keys
+cp .env.example .env                 # local stack keys are already the defaults; add your GEMINI_API_KEY
 uv sync
-uv run uvicorn app.main:app --reload --port 8000
-```
 
-### Database
-
-```bash
-supabase link --project-ref <ref>
-supabase db push
-```
-
-### Mobile
-
-```bash
-cd apps/mobile
-cp .env.example .env   # fill in keys
+# 3. Mobile deps + env, then build the dev client onto the simulator
+cd ../../apps/mobile
+cp .env.example .env                 # points at the local stack + http://127.0.0.1:8000 by default
 npm install
-npx expo run:ios   # dev build required (native audio module); Expo Go won't work for recording
+npx expo run:ios --device "iPhone 17 Pro"   # builds + installs the dev client (first time only)
 ```
+
+> A **dev build is required** (not Expo Go) because of the native audio module. The first
+> `expo run:ios` compiles it; after that you only need Metro (below).
+
+### Day-to-day
+
+Three things run together — start them in separate terminals:
+
+```bash
+# 1. Database (Docker)
+supabase start
+
+# 2. Backend (from services/api)
+uv run uvicorn app.main:app --reload --port 8000
+
+# 3. Metro + open the app in the simulator (from apps/mobile)
+npx expo start            # press i to open the iOS simulator, or:
+xcrun simctl launch booted dev.oratio.app
+```
+
+If the simulator's app shows "No script URL", point it at Metro once:
+
+```bash
+xcrun simctl openurl booted "dev.oratio.app://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8081"
+```
+
+### Stopping
+
+```bash
+supabase stop             # stops the Docker stack (data is kept in a Docker volume)
+# Ctrl-C the Metro and uvicorn terminals
+```
+
+`supabase start` again later restores all local data. To wipe and re-seed: `supabase db reset`.
+
+### Deploying to production
+
+See **[DEPLOYMENT.md](DEPLOYMENT.md)** — cloud Supabase, the FastAPI backend on Railway/Render, and shipping the app to the App Store via EAS.
 
 ## Architecture (one paragraph)
 
