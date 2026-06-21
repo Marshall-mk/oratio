@@ -4,6 +4,7 @@ Validated by scripts/live_spike.py: input transcription deltas arrive in real
 time; the model is instructed to stay silent and any stray output is discarded.
 """
 
+import array
 import asyncio
 import time
 from collections.abc import AsyncIterator
@@ -18,6 +19,33 @@ SILENT_LISTENER_INSTRUCTION = (
     "You are a silent transcription listener. The user is practicing a speech. "
     "Never respond, never speak, never comment. Remain completely silent at all times."
 )
+
+# Input-gain normalization for quiet capture (notably the iOS Simulator, which
+# pipes the Mac mic in at low gain with no hardware tuning). Per-chunk peak AGC:
+# boost each chunk toward a target peak, capped so we never blow up background
+# noise, gated so near-silent chunks pass through, and clamped so it can't clip.
+# On already-loud audio (a real device) the computed gain is <= 1, so it's a no-op.
+_TARGET_PEAK = 22000  # ~ -3.4 dBFS for the loudest sample in a chunk
+_MAX_GAIN = 8.0  # never amplify more than this (avoids amplifying hiss)
+_NOISE_FLOOR_PEAK = 500  # peak below this ≈ silence/noise → leave untouched
+
+
+def normalize_pcm16(pcm: bytes) -> bytes:
+    """Boost quiet 16-bit mono PCM toward a target peak (see module note)."""
+    if len(pcm) < 2:
+        return pcm
+    samples = array.array("h")  # signed 16-bit, native (little-)endian
+    samples.frombytes(pcm if len(pcm) % 2 == 0 else pcm[:-1])
+    peak = max((abs(s) for s in samples), default=0)
+    if peak <= _NOISE_FLOOR_PEAK:
+        return pcm
+    gain = min(_MAX_GAIN, _TARGET_PEAK / peak)
+    if gain <= 1.0:
+        return pcm
+    for i, s in enumerate(samples):
+        v = int(s * gain)
+        samples[i] = 32767 if v > 32767 else -32768 if v < -32768 else v
+    return samples.tobytes()
 
 
 @dataclass
@@ -96,7 +124,7 @@ class LiveTranscriber:
 
     async def send_audio(self, pcm_chunk: bytes) -> None:
         await self._session.send_realtime_input(
-            audio=types.Blob(data=pcm_chunk, mime_type="audio/pcm;rate=16000")
+            audio=types.Blob(data=normalize_pcm16(pcm_chunk), mime_type="audio/pcm;rate=16000")
         )
 
     async def finish(self, quiet_seconds: float = 1.5, max_wait: float = 15.0) -> None:
