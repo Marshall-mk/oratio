@@ -1,4 +1,4 @@
-import { useAudioPlayer } from 'expo-audio';
+import { useAudioPlayer, setAudioModeAsync } from 'expo-audio';
 import { useAudioRecorder } from '@siteed/audio-studio';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -46,12 +46,30 @@ export default function RoleplayScreen() {
 
     async function begin() {
       try {
+        // The persona talks back (player.play below), so we must hold a
+        // play-and-record audio session — otherwise iOS switches to playback
+        // and silences the mic, so user turns capture nothing. allowsRecording
+        // keeps expo-audio's player from stealing the session back.
+        await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
         await recorder.startRecording({
           sampleRate: 16000,
           channels: 1,
           encoding: 'pcm_16bit',
           interval: 250,
           keepAwake: true,
+          // The persona's audio playback (expo-audio) interrupts the recording
+          // session; without auto-resume the recorder stays paused and all
+          // later user turns capture nothing.
+          autoResumeAfterInterruption: true,
+          // VoiceChat adds Apple's echo cancellation so the persona's voice
+          // isn't picked back up as the user; DefaultToSpeaker keeps it audible.
+          ios: {
+            audioSession: {
+              category: 'PlayAndRecord',
+              mode: 'VoiceChat',
+              categoryOptions: ['DefaultToSpeaker', 'AllowBluetooth'],
+            },
+          },
           onAudioStream: async (event) => {
             if (turnActive.current && typeof event.data === 'string') {
               socket.sendAudio(event.data);

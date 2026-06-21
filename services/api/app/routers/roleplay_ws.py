@@ -116,7 +116,13 @@ async def roleplay_session(ws: WebSocket, token: str, attempt_id: uuid.UUID) -> 
 
             segments = rp.transcript_segments()
             full_text = rp.full_text()
-            if segments:
+            # Only evaluate if the user actually spoke. Without this guard an
+            # all-persona transcript gets sent to the evaluator, which then
+            # fabricates user turns ("responses I never said").
+            has_user_speech = any(
+                s["role"] == "user" and s["text"].strip() for s in segments
+            )
+            if has_user_speech:
                 async with factory() as db:
                     db.add(
                         Transcript(
@@ -137,6 +143,17 @@ async def roleplay_session(ws: WebSocket, token: str, attempt_id: uuid.UUID) -> 
                     {"type": "conversation_saved", "turn_count": len(segments)}
                 )
                 asyncio.create_task(run_evaluation(attempt_id))
+            else:
+                async with factory() as db:
+                    db_attempt = await db.get(Attempt, attempt_id)
+                    db_attempt.status = "failed"
+                    await db.commit()
+                await ws.send_json(
+                    {
+                        "type": "error",
+                        "detail": "We didn't catch any of your speech — nothing was recorded. Please try again.",
+                    }
+                )
             await ws.close()
     except Exception as exc:
         try:

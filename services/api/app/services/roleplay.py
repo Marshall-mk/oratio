@@ -107,6 +107,14 @@ class RoleplayConductor:
                             if part.inline_data and part.inline_data.data:
                                 self._persona_audio.extend(part.inline_data.data)
                     if sc.turn_complete:
+                        # Finalize the user's turn HERE, not in end_user_turn:
+                        # input transcription lags the audio, so by the time the
+                        # persona's turn completes all the user's deltas have
+                        # arrived and land correctly ordered before the reply.
+                        user_text = "".join(self._user_buf).strip()
+                        if user_text:
+                            self.turns.append(ConversationTurn("user", user_text))
+                        self._user_buf.clear()
                         persona_text = "".join(self._persona_buf).strip()
                         if persona_text:
                             self.turns.append(ConversationTurn("persona", persona_text))
@@ -149,11 +157,10 @@ class RoleplayConductor:
         )
 
     async def end_user_turn(self) -> None:
-        """Close the user's turn; the persona will respond."""
+        """Close the user's turn; the persona will respond. The user turn text
+        is finalized at the persona's turn_complete (see _receive_loop), once
+        all of the user's input-transcription deltas have arrived."""
         await self._session.send_realtime_input(activity_end=types.ActivityEnd())
-        user_text = "".join(self._user_buf).strip()
-        if user_text:
-            self.turns.append(ConversationTurn("user", user_text))
 
     async def events(self) -> AsyncIterator[tuple[str, object]]:
         while True:
