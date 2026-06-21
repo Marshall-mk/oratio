@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
@@ -26,6 +26,9 @@ export default function ChallengeDetail() {
   const { data: challenge, isLoading } = useQuery({
     queryKey: ['challenge', id],
     queryFn: () => api<Challenge>(`/challenges/${id}`),
+  });
+  const example = useMutation({
+    mutationFn: () => api<{ example: string }>(`/challenges/${id}/example`, { method: 'POST' }),
   });
 
   if (isLoading || !challenge) {
@@ -92,6 +95,25 @@ export default function ChallengeDetail() {
         onPress={() => startSession.mutate({ challengeId: challenge.id, mode: challenge.mode })}
         loading={startSession.isPending}
       />
+
+      <Button
+        title={example.isPending ? 'Generating…' : example.data ? 'Show another example' : 'Show example'}
+        variant="ghost"
+        loading={example.isPending}
+        onPress={() => example.mutate()}
+      />
+
+      {example.isError && (
+        <Text style={styles.exampleError}>Couldn’t generate an example — try again.</Text>
+      )}
+
+      {example.data && (
+        <View style={styles.exampleCard}>
+          <Text style={styles.exampleLabel}>Model example</Text>
+          <Text style={styles.exampleText}>{example.data.example}</Text>
+          <Text style={styles.exampleNote}>One way to do it — your own take is what counts.</Text>
+        </View>
+      )}
     </ScrollView>
   );
 }
@@ -133,5 +155,17 @@ function makeStyles(c: AppColors) {
   },
   metaValue: { fontSize: 22, fontWeight: '800', color: c.textPrimary },
   metaLabel: { fontSize: 12, color: c.textSecondary, marginTop: 2 },
+  exampleError: { color: c.danger, fontSize: 13, textAlign: 'center' },
+  exampleCard: {
+    backgroundColor: c.surface,
+    borderWidth: 1,
+    borderColor: c.border,
+    borderRadius: 14,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  exampleLabel: { color: c.primary, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
+  exampleText: { color: c.textPrimary, fontSize: 16, lineHeight: 24 },
+  exampleNote: { color: c.textMuted, fontSize: 12, fontStyle: 'italic' },
 });
 }

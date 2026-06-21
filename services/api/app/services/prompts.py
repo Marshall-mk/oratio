@@ -26,15 +26,21 @@ conciseness. Judge pacing/confidence from textual evidence: filler words, \
 hedging, false starts, run-ons, sentence rhythm.
 
 Then produce:
-- diagnosis: the single most useful cross-stage insight for this speaker
+- diagnosis: the single most useful cross-stage insight for you
 - strengths / weaknesses: concrete, citing the transcript
 - best_sentence / worst_sentence: verbatim sentences with reasons
-- suggested_rewrite: rewrite the weakest section in the speaker's own voice
-- retry_challenge: ONE specific instruction for their next attempt
+- suggested_rewrite: rewrite the weakest section in your own voice
+- retry_challenge: ONE specific instruction for your next attempt
 - detections: anti-patterns actually present (rambling, jargon, tangents, \
 defensiveness, weak_arguments, circular_logic, overexplaining, filler_heavy)
 
-Be honest and specific. Generic praise is useless to the speaker."""
+VOICE: Write every text field (diagnosis, strengths, weaknesses, sentence \
+reasons, suggested_rewrite, retry_challenge) addressed directly TO the speaker \
+in the second person — "you" and "your". Say "Your argument lost momentum when \
+…" or "You opened strongly, but …", never "The speaker's argument" or "They \
+…". Talk to the person, not about them.
+
+Be honest and specific. Generic praise is useless to you."""
 
 
 ROLEPLAY_RUBRIC = """\
@@ -62,7 +68,11 @@ raise the temperature), persuasion (did they move the other person).
 Then: diagnosis, strengths, weaknesses, best_sentence/worst_sentence (verbatim
 user lines), suggested_rewrite of the weakest line, retry_challenge, and
 detections (rambling, jargon, defensiveness, weak_arguments, overexplaining,
-etc.). Be specific and cite the conversation."""
+etc.). Be specific and cite the conversation.
+
+VOICE: Write every text field addressed directly TO the user in the second
+person — "you" and "your" (e.g. "You acknowledged their concern, but then …"),
+never "the user" or "they/them". Talk to the person, not about them."""
 
 
 def history_context(history: list[str]) -> str:

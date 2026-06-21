@@ -7,6 +7,7 @@ from sqlalchemy import select
 from app.deps import CurrentUser, DbSession
 from app.models import Challenge
 from app.services.drill_generator import generate_drill
+from app.services.example_generator import generate_example
 
 router = APIRouter(prefix="/challenges", tags=["challenges"])
 
@@ -81,3 +82,21 @@ async def get_challenge(challenge_id: uuid.UUID, user: CurrentUser, db: DbSessio
     if challenge is None:
         raise HTTPException(status_code=404, detail="Challenge not found")
     return _to_out(challenge)
+
+
+class ExampleOut(BaseModel):
+    example: str
+
+
+@router.post("/{challenge_id}/example", response_model=ExampleOut)
+async def example(challenge_id: uuid.UUID, user: CurrentUser, db: DbSession) -> ExampleOut:
+    """AI-generate a model spoken answer for this drill (the 'Show example' button)."""
+    result = await db.execute(select(Challenge).where(Challenge.id == challenge_id))
+    challenge = result.scalar_one_or_none()
+    if challenge is None:
+        raise HTTPException(status_code=404, detail="Challenge not found")
+    try:
+        text = await generate_example(db, uuid.UUID(user.id), challenge)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Couldn't generate an example: {exc}") from exc
+    return ExampleOut(example=text)
