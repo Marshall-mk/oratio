@@ -21,8 +21,10 @@ export function Sparkline({ points, color }: { points: number[]; color: string }
 
 function makeStyles(c: AppColors) {
   return StyleSheet.create({
-    row: { flexDirection: 'row', alignItems: 'flex-end', height: 48, gap: 3 },
-    slot: { flex: 1, height: '100%', justifyContent: 'flex-end', backgroundColor: c.progressTrack, borderRadius: 3 },
-    bar: { borderRadius: 3, minHeight: 3 },
+    // Bars are capped at maxWidth so a handful of attempts render as slender
+    // bars (not wide squares); with many attempts flex shrinks them to fit.
+    row: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'flex-start', height: 44, gap: 6 },
+    slot: { flex: 1, maxWidth: 22, height: '100%', justifyContent: 'flex-end', backgroundColor: c.progressTrack, borderRadius: 4 },
+    bar: { borderRadius: 4, minHeight: 3 },
   });
 }
