@@ -1,10 +1,14 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { AttemptRow } from '@/components/AttemptRow';
 import { Sparkline } from '@/components/Sparkline';
 import { api } from '@/lib/api';
-import { useColors, type AppColors, radius, scoreColor, spacing } from '@/theme';
+import { useColors, type AppColors, radius, spacing } from '@/theme';
+
+const RECENT_LIMIT = 10;
 
 interface StageSeries {
   stage: string;
@@ -70,10 +74,6 @@ function Delta({ value, suffix }: { value: number; suffix?: string }) {
       {suffix}
     </Text>
   );
-}
-
-function fmtDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
 export default function ProgressScreen() {
@@ -210,30 +210,17 @@ export default function ProgressScreen() {
 
       {/* Recent attempts */}
       <Text style={styles.sectionHeader}>Recent attempts</Text>
-      {(data?.recent_attempts ?? []).map((a) => (
-        <Pressable
-          key={a.attempt_id}
-          style={({ pressed }) => [styles.attemptRow, pressed && { opacity: 0.7 }]}
-          onPress={() =>
-            router.push({ pathname: '/results/[attemptId]', params: { attemptId: a.attempt_id } })
-          }>
-          <View style={styles.attemptLeft}>
-            <Text style={styles.attemptTitle} numberOfLines={1}>{a.challenge_title}</Text>
-            <Text style={styles.attemptMeta}>
-              {a.challenge_category} · #{a.attempt_number} · {fmtDate(a.created_at)}
-            </Text>
-          </View>
-          <View
-            style={[
-              styles.scorePill,
-              { backgroundColor: `${scoreColor(c, a.overall_score ?? 0)}22` },
-            ]}>
-            <Text style={[styles.scorePillText, { color: scoreColor(c, a.overall_score ?? 0) }]}>
-              {a.overall_score?.toFixed(1) ?? '–'}
-            </Text>
-          </View>
-        </Pressable>
+      {(data?.recent_attempts ?? []).slice(0, RECENT_LIMIT).map((a) => (
+        <AttemptRow key={a.attempt_id} attempt={a} />
       ))}
+      {(data?.recent_attempts?.length ?? 0) > RECENT_LIMIT && (
+        <Pressable
+          onPress={() => router.push('/attempts')}
+          style={({ pressed }) => [styles.viewAll, pressed && { opacity: 0.6 }]}>
+          <Text style={styles.viewAllText}>View all attempts</Text>
+          <Ionicons name="chevron-forward" size={18} color={c.primary} />
+        </Pressable>
+      )}
       {data && data.recent_attempts.length === 0 && (
         <Text style={styles.empty}>Complete your first challenge to see it here.</Text>
       )}
@@ -344,28 +331,14 @@ function makeStyles(c: AppColors) {
     overflow: 'hidden',
   },
 
-  attemptRow: {
+  viewAll: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: c.surface,
-    borderWidth: 1,
-    borderColor: c.border,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.md,
-  },
-  attemptLeft: { flex: 1 },
-  attemptTitle: { fontSize: 16, fontWeight: '700', color: c.textPrimary },
-  attemptMeta: { fontSize: 12, color: c.textMuted, marginTop: 3, textTransform: 'capitalize' },
-  scorePill: {
-    minWidth: 48,
-    height: 40,
-    borderRadius: radius.md,
-    alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 10,
+    gap: 2,
+    paddingVertical: spacing.sm,
   },
-  scorePillText: { fontSize: 18, fontWeight: '800', fontVariant: ['tabular-nums'] },
+  viewAllText: { color: c.primary, fontSize: 15, fontWeight: '700' },
 
   empty: { color: c.textSecondary, fontSize: 14, fontStyle: 'italic' },
 });
