@@ -82,6 +82,8 @@ supabase stop             # stops the Docker stack (data is kept in a Docker vol
 
 See **[DEPLOYMENT.md](DEPLOYMENT.md)** — cloud Supabase, the FastAPI backend on Railway/Render, and shipping the app to the App Store via EAS.
 
+For a **free, standalone Android** install (sideloaded APK, no store account, $0/month), see **[ANDROID_DEPLOYMENT.md](ANDROID_DEPLOYMENT.md)**.
+
 ## Architecture (one paragraph)
 
 The phone records mic audio as 16 kHz PCM; chunks are streamed over a WebSocket to the FastAPI backend, which proxies them into a Gemini Live session configured as a silent transcriber and streams transcript deltas back for live captions. The same recorder writes a WAV locally, which is uploaded to Supabase Storage on stop. Completing an attempt triggers a Gemini 2.5 Pro structured-output evaluation of the transcript (Thought / Structure / Delivery, per-dimension subscores, feedback report), persisted to Postgres and polled by the app.
