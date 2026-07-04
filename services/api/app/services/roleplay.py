@@ -65,7 +65,9 @@ class RoleplayConductor:
         config = types.LiveConnectConfig(
             response_modalities=[types.Modality.AUDIO],
             system_instruction=self.persona["instruction"],
-            input_audio_transcription=types.AudioTranscriptionConfig(),
+            input_audio_transcription=types.AudioTranscriptionConfig(
+                language_codes=[settings.transcription_language],
+            ),
             output_audio_transcription=types.AudioTranscriptionConfig(),
             speech_config=speech,
             realtime_input_config=types.RealtimeInputConfig(

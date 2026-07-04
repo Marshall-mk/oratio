@@ -21,31 +21,58 @@ SILENT_LISTENER_INSTRUCTION = (
 )
 
 # Input-gain normalization for quiet capture (notably the iOS Simulator, which
-# pipes the Mac mic in at low gain with no hardware tuning). Per-chunk peak AGC:
-# boost each chunk toward a target peak, capped so we never blow up background
-# noise, gated so near-silent chunks pass through, and clamped so it can't clip.
-# On already-loud audio (a real device) the computed gain is <= 1, so it's a no-op.
+# pipes the Mac mic in at low gain with no hardware tuning). Session-adaptive
+# per-chunk AGC: each chunk's energy (RMS) is compared against a running
+# estimate of the session's room tone, and only chunks that stand clearly
+# above it — i.e. actual speech — are boosted toward a target peak. Pauses and
+# room tone pass through untouched: the previous peak-gated version amplified
+# them up to 8x, and on real devices Gemini hallucinated words (foreign-language
+# tokens, <noise> markers) from the boosted noise between phrases.
+# On already-loud audio the computed gain is <= 1, so it's a no-op.
 _TARGET_PEAK = 22000  # ~ -3.4 dBFS for the loudest sample in a chunk
-_MAX_GAIN = 8.0  # never amplify more than this (avoids amplifying hiss)
-_NOISE_FLOOR_PEAK = 500  # peak below this ≈ silence/noise → leave untouched
+_MAX_GAIN = 4.0  # never amplify more than this (avoids blowing up hiss)
+_MIN_SPEECH_RMS = 150  # below this ≈ silence, whatever the floor says
+_SPEECH_SNR = 3.0  # chunk RMS must exceed floor × this to count as speech
+_FLOOR_RISE = 0.02  # how fast the floor estimate drifts up toward louder input
 
 
-def normalize_pcm16(pcm: bytes) -> bytes:
-    """Boost quiet 16-bit mono PCM toward a target peak (see module note)."""
-    if len(pcm) < 2:
-        return pcm
-    samples = array.array("h")  # signed 16-bit, native (little-)endian
-    samples.frombytes(pcm if len(pcm) % 2 == 0 else pcm[:-1])
-    peak = max((abs(s) for s in samples), default=0)
-    if peak <= _NOISE_FLOOR_PEAK:
-        return pcm
-    gain = min(_MAX_GAIN, _TARGET_PEAK / peak)
-    if gain <= 1.0:
-        return pcm
-    for i, s in enumerate(samples):
-        v = int(s * gain)
-        samples[i] = 32767 if v > 32767 else -32768 if v < -32768 else v
-    return samples.tobytes()
+class PcmAutoGain:
+    """Session-scoped AGC for 16-bit mono PCM chunks (see module note)."""
+
+    def __init__(self) -> None:
+        self._floor_rms: float | None = None
+
+    def process(self, pcm: bytes) -> bytes:
+        if len(pcm) < 2:
+            return pcm
+        samples = array.array("h")  # signed 16-bit, native (little-)endian
+        samples.frombytes(pcm if len(pcm) % 2 == 0 else pcm[:-1])
+        peak = 0
+        sq_sum = 0
+        for s in samples:
+            a = -s if s < 0 else s
+            if a > peak:
+                peak = a
+            sq_sum += s * s
+        rms = (sq_sum / len(samples)) ** 0.5
+
+        # Track the quietest level heard this session: follow drops instantly,
+        # drift upward slowly so a long loud stretch doesn't become the floor.
+        if self._floor_rms is None or rms < self._floor_rms:
+            self._floor_rms = rms
+        else:
+            self._floor_rms += (rms - self._floor_rms) * _FLOOR_RISE
+
+        # Boost only clear speech; pauses and room tone are never amplified.
+        if rms < max(_MIN_SPEECH_RMS, self._floor_rms * _SPEECH_SNR):
+            return pcm
+        gain = min(_MAX_GAIN, _TARGET_PEAK / peak)
+        if gain <= 1.0:
+            return pcm
+        for i, s in enumerate(samples):
+            v = int(s * gain)
+            samples[i] = 32767 if v > 32767 else -32768 if v < -32768 else v
+        return samples.tobytes()
 
 
 @dataclass
@@ -73,6 +100,7 @@ class LiveTranscriber:
     _session_cm: object = None
     _recv_task: asyncio.Task | None = None
     _queue: asyncio.Queue = field(default_factory=asyncio.Queue)
+    _agc: PcmAutoGain = field(default_factory=PcmAutoGain)
     _started_at: float = 0.0
     _last_delta_at_ms: int = 0
 
@@ -82,7 +110,9 @@ class LiveTranscriber:
         config = types.LiveConnectConfig(
             response_modalities=[types.Modality.AUDIO],
             system_instruction=SILENT_LISTENER_INSTRUCTION,
-            input_audio_transcription=types.AudioTranscriptionConfig(),
+            input_audio_transcription=types.AudioTranscriptionConfig(
+                language_codes=[settings.transcription_language],
+            ),
         )
         self._session_cm = client.aio.live.connect(
             model=self.live_model or settings.gemini_live_model, config=config
@@ -124,7 +154,7 @@ class LiveTranscriber:
 
     async def send_audio(self, pcm_chunk: bytes) -> None:
         await self._session.send_realtime_input(
-            audio=types.Blob(data=normalize_pcm16(pcm_chunk), mime_type="audio/pcm;rate=16000")
+            audio=types.Blob(data=self._agc.process(pcm_chunk), mime_type="audio/pcm;rate=16000")
         )
 
     async def finish(self, quiet_seconds: float = 1.5, max_wait: float = 15.0) -> None:

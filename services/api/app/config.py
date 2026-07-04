@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     gemini_live_model: str = "gemini-2.5-flash-native-audio-preview-12-2025"
     gemini_eval_model: str = "gemini-2.5-pro"
     eval_with_audio: bool = False
+    # BCP-47 hint for live input transcription; without it the model free-runs
+    # language detection and can drift on ambiguous audio.
+    transcription_language: str = "en-US"
 
     # Analytics
     posthog_api_key: str = ""
