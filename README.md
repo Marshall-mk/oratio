@@ -82,7 +82,7 @@ supabase stop             # stops the Docker stack (data is kept in a Docker vol
 
 See **[DEPLOYMENT.md](DEPLOYMENT.md)** — cloud Supabase, the FastAPI backend on Railway/Render, and shipping the app to the App Store via EAS.
 
-For a **free, standalone Android** install (sideloaded APK, no store account, $0/month), see **[ANDROID_DEPLOYMENT.md](ANDROID_DEPLOYMENT.md)**.
+For a **free, standalone Android** install (sideloaded APK, no store account, $0/month), see **[ANDROID_DEPLOYMENT.md](ANDROID_DEPLOYMENT.md)**. For shipping to the **iOS App Store** (EAS build, TestFlight, review checklist), see **[IOS_DEPLOYMENT.md](IOS_DEPLOYMENT.md)**.
 
 ## Architecture (one paragraph)
 

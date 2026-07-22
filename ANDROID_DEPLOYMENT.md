@@ -25,7 +25,7 @@ There are two things to stand up:
 | Piece | Free option | The catch (all livable for personal use) |
 |---|---|---|
 | **App binary** | Local **release APK**, sideloaded via `adb install` | Signed with the debug key — fine for sideloading, not for the Play Store |
-| **Supabase** | **Free tier** (cloud) | 500 MB DB, 1 GB storage, project **pauses after ~1 week idle** (un-pause in dashboard) |
+| **Supabase** | **Free tier** (cloud) | 500 MB DB; storage is a non-issue (recordings auto-delete after evaluation); project **pauses after ~1 week idle** (un-pause in dashboard) |
 | **Backend** (FastAPI + WebSockets) | **Render** free web service, or **Hugging Face Space** (Docker) | **Sleeps when idle** → first request after a nap has a cold start (~30–60 s) |
 | **Gemini** | **Free-tier** API key (Google AI Studio) | Use **flash** models — the free tier has **no `gemini-2.5-pro` quota**, plus per-minute/day rate limits |
 
@@ -111,6 +111,11 @@ DATABASE_URL=postgresql+asyncpg://postgres.<ref>:<pw>@aws-0-<region>.pooler.supa
 GEMINI_API_KEY=<your free AI Studio key>
 GEMINI_EVAL_MODEL=gemini-2.5-flash          # IMPORTANT: pro has ZERO free quota — override the default
 ENVIRONMENT=production
+
+# Optional tuning (defaults are sensible):
+# GEMINI_TRANSCRIBER_MODEL=gemini-live-2.5-flash-preview  # half-cascade model for live captions
+# TRANSCRIPTION_LANGUAGE=en-US                            # BCP-47 hint for live transcription
+# GEMINI_VAD_SILENCE_MS=500                               # end-of-turn silence for caption flushes
 ```
 
 ---
@@ -162,6 +167,11 @@ yes | sdkmanager --licenses
 sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0" "ndk;27.1.12297006" "cmake;3.22.1"
 ```
 
+> **Native modules (all handled by `npm install` + the committed config).** Besides
+> `@siteed/audio-studio`, the app links `expo-speech-recognition` (Device caption engine —
+> config plugin in `app.json`) and `whisper.rn` (Whisper caption engine — autolinked, with a
+> Node-`buffer` polyfill wired in `metro.config.js`). No manual steps: install, prebuild, build.
+>
 > **Native-module patch (already in the repo).** `@siteed/audio-studio@3.2.0`'s Android code
 > overrides an Expo `Promise.reject(...)` signature that changed in SDK 56, which breaks the
 > Android compile. The repo carries a fix in **`apps/mobile/patches/`** applied automatically by
@@ -221,7 +231,13 @@ The APK is just a file — no build machine required to install it:
 - **Supabase pause:** free projects pause after ~7 days of no activity. Un-pause from the
   dashboard (one click) — data is retained.
 - **Flash, not pro:** evaluations use `gemini-2.5-flash`. Solid, just not top-tier scoring.
-- **Rate limits:** heavy back-to-back live sessions can hit the Gemini free-tier cap.
+- **Rate limits:** heavy back-to-back live sessions can hit the Gemini free-tier cap. Two
+  built-in mitigations: pick the **Device** or **Whisper** caption engine (Profile → AI
+  settings) so live captions never touch Gemini, and note that each attempt then makes only
+  two Gemini calls (one transcription of the recording, one evaluation).
+- **Storage stays near zero:** recordings are **deleted automatically once evaluation
+  completes** — only transcripts, scores and reports (a few KB per attempt) persist, so the
+  1 GB free storage tier is effectively never a constraint.
 
 None of these cost money; they're the shape of the free tier.
 
