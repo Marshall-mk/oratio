@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 
 import { useColors } from '@/theme';
@@ -31,7 +31,9 @@ export default function TabsLayout() {
         name="gym"
         options={{
           title: 'Train',
-          tabBarIcon: ({ color, size }) => <Ionicons name="barbell" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="brain" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
