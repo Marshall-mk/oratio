@@ -11,6 +11,7 @@ from app.config import get_settings
 from app.db import get_session_factory
 from app.models import (
     Attempt,
+    AudioFile,
     Challenge,
     CommunicationMetric,
     FeedbackReport,
@@ -19,6 +20,7 @@ from app.models import (
     Session,
     Transcript,
 )
+from app.services.storage import delete_recording
 from app.services.gemini_config import GeminiConfig, resolve_for_user
 from app.services.memory import retrieve_memories, store_memory
 from app.services.metrics import compute_metrics
@@ -120,6 +122,20 @@ async def _evaluate(db: AsyncSession, attempt_id: uuid.UUID) -> None:
 
     attempt.status = "complete"
     await db.commit()
+
+    # Retention: the result is in — transcript, scores and report are the
+    # durable record, so drop the audio (storage object + DB row) to keep
+    # storage minimal. Best-effort: a failure here must not fail the attempt.
+    try:
+        audio = (
+            await db.execute(select(AudioFile).where(AudioFile.attempt_id == attempt.id))
+        ).scalar_one_or_none()
+        if audio is not None:
+            await delete_recording(audio.storage_path)
+            await db.delete(audio)
+            await db.commit()
+    except Exception:
+        logger.exception("Audio cleanup failed for attempt %s", attempt_id)
 
     # Store this attempt as a memory for future personalization (best-effort).
     try:
