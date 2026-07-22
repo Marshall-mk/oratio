@@ -55,13 +55,13 @@ export class DeviceCaptionSession {
     );
 
     this.startedAt = Date.now();
+    // Use the device's default recognition service. Pinning Google's package
+    // breaks on devices without the Google app (e.g. some Samsung tablets
+    // default to Samsung's recognizer and don't expose Google's service).
     ExpoSpeechRecognitionModule.start({
       lang: 'en-US',
       interimResults: true,
       continuous: true,
-      // Samsung devices may default to Samsung's recognizer, whose continuous
-      // mode and offline support are flaky — pin Google's service when present.
-      androidRecognitionServicePackage: 'com.google.android.googlequicksearchbox',
       recordingOptions: {
         persist: true,
         outputSampleRate: 16000,
