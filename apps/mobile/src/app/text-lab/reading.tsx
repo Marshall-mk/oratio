@@ -129,7 +129,7 @@ export default function ReadingLab() {
 
   return (
     <ScrollView style={{ backgroundColor: c.background }} contentContainerStyle={styles.container}>
-      <BackButton label="Gym" onPress={() => router.dismissTo('/gym')} />
+      <BackButton label="Train" onPress={() => router.dismissTo('/gym')} />
       <Text style={styles.title}>{exercise.source_title ?? 'Study pack'}</Text>
 
       <Section label="Summary">

@@ -34,7 +34,7 @@ export default function GymCategory() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
-      <BackButton label="Gym" onPress={() => router.back()} />
+      <BackButton label="Train" onPress={() => router.back()} />
       <Text style={styles.title}>{meta.label}</Text>
       <Text style={styles.blurb}>{meta.blurb}</Text>
 

@@ -65,7 +65,7 @@ export default function DebateSetup() {
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: c.background }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.container}>
-        <BackButton label="Gym" onPress={() => router.back()} />
+        <BackButton label="Train" onPress={() => router.back()} />
         <Text style={styles.title}>Debate Arena</Text>
         <Text style={styles.blurb}>Gather your friends, pass the phone, let the AI judge.</Text>
 

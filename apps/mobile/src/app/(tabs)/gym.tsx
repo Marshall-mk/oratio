@@ -48,7 +48,7 @@ export default function Gym() {
     <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
       <View style={styles.header}>
         <Text style={styles.greeting}>
-          {profile?.display_name ? `Hey, ${profile.display_name}` : 'The Gym'}
+          {profile?.display_name ? `Hey, ${profile.display_name}` : 'Train'}
         </Text>
         <Text style={styles.sub}>Pick a category to train</Text>
       </View>
