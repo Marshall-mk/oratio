@@ -18,6 +18,7 @@ import { Chip } from '@/components/Chip';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useSettings, useUpdateSettings } from '@/hooks/useSettings';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
+import { useTransient } from '@/hooks/useTransient';
 import { api } from '@/lib/api';
 import {
   deleteWhisperModel,
@@ -106,11 +107,12 @@ export default function Profile() {
   const [weaknesses, setWeaknesses] = useState<string[]>([]);
   const [useCases, setUseCases] = useState<string[]>([]);
   const [confidence, setConfidence] = useState<number | null>(null);
-  const [saved, setSaved] = useState(false);
+  const [saved, flashSaved] = useTransient();
+  const [cleared, flashCleared] = useTransient();
+  const [modelDownloaded, flashModelDownloaded] = useTransient();
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [clearing, setClearing] = useState(false);
-  const [cleared, setCleared] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -134,7 +136,6 @@ export default function Profile() {
   // One Save covers both profile fields and AI settings.
   async function save() {
     setError(null);
-    setSaved(false);
     try {
       await Promise.all([
         update.mutateAsync({
@@ -153,7 +154,7 @@ export default function Profile() {
         }),
       ]);
       setApiKey('');
-      setSaved(true);
+      flashSaved();
     } catch (e) {
       setError(errorText(e));
     }
@@ -165,6 +166,7 @@ export default function Profile() {
     try {
       await downloadWhisperModel(setWhisperProgress);
       setWhisperReady(true);
+      flashModelDownloaded();
     } catch (e) {
       setError(errorText(e));
     } finally {
@@ -180,7 +182,6 @@ export default function Profile() {
 
   async function clearKey() {
     setError(null);
-    setSaved(false);
     try {
       await updateSettings.mutateAsync({ gemini_api_key: '' });
     } catch (e) {
@@ -200,12 +201,11 @@ export default function Profile() {
           onPress: async () => {
             setClearing(true);
             setError(null);
-            setCleared(false);
             try {
               await api('/me/attempts', { method: 'DELETE' });
               // Progress and attempt lists are all derived from this data.
               await queryClient.invalidateQueries({ queryKey: ['progress'] });
-              setCleared(true);
+              flashCleared();
             } catch (e) {
               setError(errorText(e));
             } finally {
@@ -341,11 +341,6 @@ export default function Profile() {
         </View>
 
         <Text style={styles.label}>Live captions engine</Text>
-        <Text style={styles.aiNote}>
-          Used for solo drill captions. Coach, debate and roleplay always use Gemini Live, and
-          scoring always evaluates the full recording — the engine only changes what you see
-          while speaking.
-        </Text>
         {ENGINE_OPTIONS.map((o) => {
           const selected = captionEngine === o.value;
           return (
@@ -375,7 +370,7 @@ export default function Profile() {
               </>
             ) : whisperReady ? (
               <>
-                <Text style={styles.modelStatus}>Whisper model downloaded ✓</Text>
+                {modelDownloaded && <Text style={styles.saved}>Model downloaded ✓</Text>}
                 <Button title="Delete model" variant="ghost" onPress={handleDeleteModel} />
               </>
             ) : (
