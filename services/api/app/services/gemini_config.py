@@ -26,7 +26,8 @@ AVAILABLE_EVAL_MODELS = [
 class GeminiConfig:
     api_key: str
     eval_model: str
-    live_model: str
+    live_model: str  # conversational (native-audio) — roleplay
+    transcriber_model: str  # silent captions (half-cascade) — drills/coach/debate
 
 
 async def resolve_for_user(db: AsyncSession, user_id: uuid.UUID | str) -> GeminiConfig:
@@ -38,4 +39,5 @@ async def resolve_for_user(db: AsyncSession, user_id: uuid.UUID | str) -> Gemini
         api_key=(row.gemini_api_key if row and row.gemini_api_key else s.gemini_api_key),
         eval_model=(row.eval_model if row and row.eval_model else s.gemini_eval_model),
         live_model=(row.live_model if row and row.live_model else s.gemini_live_model),
+        transcriber_model=s.gemini_transcriber_model,
     )

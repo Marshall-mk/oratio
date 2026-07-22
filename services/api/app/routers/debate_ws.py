@@ -43,7 +43,7 @@ async def debate_turn(
         cfg = await resolve_for_user(db, user.id)
 
     try:
-        async with LiveTranscriber(api_key=cfg.api_key, live_model=cfg.live_model) as transcriber:
+        async with LiveTranscriber(api_key=cfg.api_key, live_model=cfg.transcriber_model) as transcriber:
 
             async def pump() -> None:
                 async for seg in transcriber.deltas():

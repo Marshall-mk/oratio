@@ -113,9 +113,17 @@ class LiveTranscriber:
             input_audio_transcription=types.AudioTranscriptionConfig(
                 language_codes=[settings.transcription_language],
             ),
+            # Snappier end-of-turn detection so transcription flushes sooner
+            # after each phrase (default VAD waits noticeably longer).
+            realtime_input_config=types.RealtimeInputConfig(
+                automatic_activity_detection=types.AutomaticActivityDetection(
+                    end_of_speech_sensitivity=types.EndSensitivity.END_SENSITIVITY_HIGH,
+                    silence_duration_ms=settings.gemini_vad_silence_ms,
+                ),
+            ),
         )
         self._session_cm = client.aio.live.connect(
-            model=self.live_model or settings.gemini_live_model, config=config
+            model=self.live_model or settings.gemini_transcriber_model, config=config
         )
         self._session = await self._session_cm.__aenter__()
         self._started_at = time.monotonic()

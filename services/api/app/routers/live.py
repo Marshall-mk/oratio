@@ -57,7 +57,7 @@ async def live_session(ws: WebSocket, token: str, attempt_id: uuid.UUID) -> None
         cfg = await resolve_for_user(db, user.id)
 
     try:
-        async with LiveTranscriber(api_key=cfg.api_key, live_model=cfg.live_model) as transcriber:
+        async with LiveTranscriber(api_key=cfg.api_key, live_model=cfg.transcriber_model) as transcriber:
 
             async def pump_deltas() -> None:
                 async for seg in transcriber.deltas():

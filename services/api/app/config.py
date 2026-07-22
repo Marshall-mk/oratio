@@ -18,11 +18,20 @@ class Settings(BaseSettings):
     # Gemini
     gemini_api_key: str = ""
     gemini_live_model: str = "gemini-2.5-flash-native-audio-preview-12-2025"
+    # Silent transcription (drills/coach/debate captions) uses the half-cascade
+    # Live model: unlike the native-audio variant (kept for roleplay, which
+    # needs spoken replies), it streams input transcription incrementally
+    # instead of holding text until the turn is processed.
+    gemini_transcriber_model: str = "gemini-live-2.5-flash-preview"
     gemini_eval_model: str = "gemini-2.5-pro"
     eval_with_audio: bool = False
     # BCP-47 hint for live input transcription; without it the model free-runs
     # language detection and can drift on ambiguous audio.
     transcription_language: str = "en-US"
+    # Live-API VAD: how much trailing silence ends a turn (and so flushes the
+    # final piece of a transcription). Google recommends 500-800 ms; lower is
+    # snappier captions, below ~500 fragments utterances.
+    gemini_vad_silence_ms: int = 500
 
     # Analytics
     posthog_api_key: str = ""
