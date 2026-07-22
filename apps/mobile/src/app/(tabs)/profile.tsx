@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -108,6 +109,9 @@ export default function Profile() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const [cleared, setCleared] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (settings) setModel(settings.eval_model);
@@ -182,6 +186,35 @@ export default function Profile() {
     } catch (e) {
       setError(errorText(e));
     }
+  }
+
+  function confirmClearAttempts() {
+    Alert.alert(
+      'Clear attempt history',
+      'This permanently deletes all your attempts, transcripts, scores and recordings — your Progress starts fresh. Debates and Text Lab results are kept. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear history',
+          style: 'destructive',
+          onPress: async () => {
+            setClearing(true);
+            setError(null);
+            setCleared(false);
+            try {
+              await api('/me/attempts', { method: 'DELETE' });
+              // Progress and attempt lists are all derived from this data.
+              await queryClient.invalidateQueries({ queryKey: ['progress'] });
+              setCleared(true);
+            } catch (e) {
+              setError(errorText(e));
+            } finally {
+              setClearing(false);
+            }
+          },
+        },
+      ],
+    );
   }
 
   function confirmDelete() {
@@ -380,6 +413,14 @@ export default function Profile() {
         <Button title="Save" onPress={save} loading={saving} style={styles.actionBtn} />
 
         <View style={styles.divider} />
+        {cleared && <Text style={styles.saved}>Attempt history cleared ✓</Text>}
+        <Button
+          title="Clear attempt history"
+          variant="ghost"
+          onPress={confirmClearAttempts}
+          loading={clearing}
+          style={styles.actionBtn}
+        />
         <Button
           title="Sign out"
           variant="ghost"

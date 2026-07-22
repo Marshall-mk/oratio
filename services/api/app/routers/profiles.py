@@ -3,14 +3,39 @@ from datetime import UTC, datetime
 
 import httpx
 from fastapi import APIRouter, HTTPException, Response, status
-from sqlalchemy import select
+from sqlalchemy import delete, select
 
 from app.config import get_settings
 from app.deps import CurrentUser, DbSession
-from app.models import Profile
+from app.models import Profile, Session
 from app.schemas.profiles import ProfileOut, ProfileUpdate
 
 router = APIRouter(prefix="/me", tags=["profile"])
+
+
+async def _delete_user_recordings(client: httpx.AsyncClient, user_id: str) -> None:
+    """Best-effort removal of a user's recordings from Supabase Storage."""
+    settings = get_settings()
+    headers = {
+        "Authorization": f"Bearer {settings.supabase_service_role_key}",
+        "apikey": settings.supabase_service_role_key,
+    }
+    try:
+        listing = await client.post(
+            f"{settings.supabase_url}/storage/v1/object/list/recordings",
+            headers=headers,
+            json={"prefix": f"{user_id}/"},
+        )
+        names = [f"{user_id}/{o['name']}" for o in listing.json()] if listing.is_success else []
+        if names:
+            await client.request(
+                "DELETE",
+                f"{settings.supabase_url}/storage/v1/object/recordings",
+                headers=headers,
+                json={"prefixes": names},
+            )
+    except Exception:
+        pass  # storage cleanup is best-effort; the DB is the source of truth
 
 
 def _to_out(p: Profile) -> ProfileOut:
@@ -57,6 +82,25 @@ async def update_profile(body: ProfileUpdate, user: CurrentUser, db: DbSession) 
     return _to_out(profile)
 
 
+@router.delete("/attempts", status_code=status.HTTP_204_NO_CONTENT)
+async def clear_attempts(user: CurrentUser, db: DbSession) -> Response:
+    """Wipe the user's speaking history and start fresh.
+
+    Deleting the user's sessions cascades to attempts, and from attempts to
+    transcripts, scores, feedback reports, audio files and communication
+    metrics. Debates and Text Lab exercises are separate features and are
+    kept. Stored recordings are removed best-effort.
+    """
+    await db.execute(delete(Session).where(Session.user_id == uuid.UUID(user.id)))
+    await db.commit()
+
+    if get_settings().supabase_service_role_key:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            await _delete_user_recordings(client, user.id)
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 @router.delete("/account", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_account(user: CurrentUser) -> Response:
     """Permanently delete the user's auth account; all data cascades from it."""
@@ -64,28 +108,13 @@ async def delete_account(user: CurrentUser) -> Response:
     if not settings.supabase_service_role_key:
         raise HTTPException(status_code=503, detail="Account deletion is not configured")
 
-    # Best-effort: remove the user's stored recordings first.
     headers = {
         "Authorization": f"Bearer {settings.supabase_service_role_key}",
         "apikey": settings.supabase_service_role_key,
     }
     async with httpx.AsyncClient(timeout=15.0) as client:
-        try:
-            listing = await client.post(
-                f"{settings.supabase_url}/storage/v1/object/list/recordings",
-                headers=headers,
-                json={"prefix": f"{user.id}/"},
-            )
-            names = [f"{user.id}/{o['name']}" for o in listing.json()] if listing.is_success else []
-            if names:
-                await client.request(
-                    "DELETE",
-                    f"{settings.supabase_url}/storage/v1/object/recordings",
-                    headers=headers,
-                    json={"prefixes": names},
-                )
-        except Exception:
-            pass  # storage cleanup is best-effort; DB cascade is the source of truth
+        # Best-effort: remove the user's stored recordings first.
+        await _delete_user_recordings(client, user.id)
 
         # Deleting the auth user cascades to every table that references it.
         resp = await client.delete(
