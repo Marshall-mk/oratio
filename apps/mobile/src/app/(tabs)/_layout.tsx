@@ -1,5 +1,6 @@
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
+import { Image } from 'react-native';
 
 import { useColors } from '@/theme';
 
@@ -32,7 +33,13 @@ export default function TabsLayout() {
         options={{
           title: 'Train',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="brain" size={size} color={color} />
+            // Axial (top-down) brain slice — no icon set ships one, so it's a
+            // tinted monochrome asset.
+            <Image
+              source={require('@/assets/images/brain-axial.png')}
+              style={{ width: size, height: size, tintColor: color }}
+              resizeMode="contain"
+            />
           ),
         }}
       />
