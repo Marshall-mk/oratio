@@ -35,22 +35,10 @@ const APPEARANCE_OPTIONS: { value: ThemeMode; label: string }[] = [
   { value: 'dark', label: 'Dark' },
 ];
 
-const ENGINE_OPTIONS: { value: CaptionEngine; label: string; description: string }[] = [
-  {
-    value: 'gemini',
-    label: 'Gemini Live (cloud)',
-    description: 'Streams your audio to the server for captions. Needs internet.',
-  },
-  {
-    value: 'device',
-    label: 'System recognizer (on-device)',
-    description: "Your device's built-in speech engine. Fastest captions; no pause during a take.",
-  },
-  {
-    value: 'whisper',
-    label: 'Whisper (on-device AI)',
-    description: 'Runs Whisper locally. Needs a one-time ~77 MB model download.',
-  },
+const ENGINE_OPTIONS: { value: CaptionEngine; label: string }[] = [
+  { value: 'gemini', label: 'Gemini' },
+  { value: 'device', label: 'Device' },
+  { value: 'whisper', label: 'Whisper' },
 ];
 
 function errorText(e: unknown): string {
@@ -348,12 +336,10 @@ export default function Profile() {
               key={o.value}
               onPress={() => setCaptionEngine(o.value)}
               style={[styles.engineCard, selected && styles.engineCardSelected]}>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.engineTitle, selected && { color: c.textPrimary }]}>
-                  {o.label}
-                </Text>
-                <Text style={styles.engineDesc}>{o.description}</Text>
-              </View>
+              <Text
+                style={[styles.engineTitle, { flex: 1 }, selected && { color: c.textPrimary }]}>
+                {o.label}
+              </Text>
               <View style={[styles.radio, selected && styles.radioSelected]} />
             </Pressable>
           );
@@ -480,7 +466,6 @@ function makeStyles(c: AppColors) {
   },
   engineCardSelected: { borderColor: c.primary, backgroundColor: c.primaryMuted },
   engineTitle: { fontSize: 15, fontWeight: '700', color: c.textSecondary },
-  engineDesc: { fontSize: 12, color: c.textSecondary, marginTop: 2 },
   radio: {
     width: 18,
     height: 18,
