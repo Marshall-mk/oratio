@@ -5,12 +5,18 @@ import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { api } from '@/lib/api';
+import { DeviceCaptionSession } from '@/lib/captions/deviceCaptions';
+import { WhisperCaptionSession } from '@/lib/captions/whisperCaptions';
+import { isWhisperModelDownloaded } from '@/lib/captions/whisperModel';
 import { LiveSocket, type LiveSocketHandlers } from '@/lib/liveSocket';
 import { uploadRecording } from '@/lib/recordings';
+import { useCaptionEngine } from '@/stores/captionEngine';
 import { useColors, type AppColors, spacing } from '@/theme';
 import type { Challenge } from '@/types/api';
 
 type Phase = 'connecting' | 'recording' | 'finishing' | 'error';
+/** 'offline' = whisper chosen but its model isn't downloaded: record-only. */
+type Engine = 'gemini' | 'device' | 'whisper' | 'offline';
 
 const READY_TIMEOUT = 8000;
 const MAX_RECONNECTS = 3;
@@ -25,14 +31,24 @@ export default function SessionScreen() {
   const router = useRouter();
   const recorder = useAudioRecorder();
 
+  // Engine is frozen for the take; changing it in Profile applies next time.
+  const [engine] = useState<Engine>(() => {
+    const chosen = useCaptionEngine.getState().engine;
+    if (chosen === 'whisper' && !isWhisperModelDownloaded()) return 'offline';
+    return chosen;
+  });
+
   const [phase, setPhase] = useState<Phase>('connecting');
   const [paused, setPaused] = useState(false);
   const [reconnecting, setReconnecting] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [fallbackMode, setFallbackMode] = useState(false);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
+  const [deviceSeconds, setDeviceSeconds] = useState(0);
 
   const socketRef = useRef<LiveSocket | null>(null);
+  const deviceRef = useRef<DeviceCaptionSession | null>(null);
+  const whisperRef = useRef<WhisperCaptionSession | null>(null);
   const finalReceived = useRef<Promise<void> | null>(null);
   const resolveFinal = useRef<(() => void) | null>(null);
   const scrollRef = useRef<ScrollView>(null);
@@ -54,6 +70,11 @@ export default function SessionScreen() {
     queryKey: ['challenge', challengeId],
     queryFn: () => api<Challenge>(`/challenges/${challengeId}`),
   });
+
+  function showCaption(text: string) {
+    setTranscript(text);
+    scrollRef.current?.scrollToEnd({ animated: true });
+  }
 
   function buildHandlers(onReadyOnce?: () => void): LiveSocketHandlers {
     return {
@@ -117,37 +138,84 @@ export default function SessionScreen() {
 
   useEffect(() => {
     let cancelled = false;
-    const socket = new LiveSocket();
-    socketRef.current = socket;
     finalReceived.current = new Promise((resolve) => {
       resolveFinal.current = resolve;
     });
 
+    async function beginGemini() {
+      const socket = new LiveSocket();
+      socketRef.current = socket;
+      await new Promise<void>((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('socket timeout')), READY_TIMEOUT);
+        socket
+          .connect(attemptId, buildHandlers(() => {
+            clearTimeout(timer);
+            resolve();
+          }))
+          .catch(reject);
+      }).catch(() => setFallbackMode(true)); // recording continues without captions
+
+      if (cancelled) return;
+      await recorder.startRecording({
+        sampleRate: 16000,
+        channels: 1,
+        encoding: 'pcm_16bit',
+        interval: 250,
+        keepAwake: true,
+        onAudioStream: async (event) => {
+          if (!pausedRef.current && typeof event.data === 'string') {
+            socketRef.current?.sendAudio(event.data);
+          }
+        },
+      });
+    }
+
+    async function beginDevice() {
+      const session = new DeviceCaptionSession();
+      deviceRef.current = session;
+      await session.start({
+        onText: showCaption,
+        onError: (detail) => {
+          // The recognizer is also the recorder here; a fatal error ends the take.
+          if (phaseRef.current === 'recording') {
+            setErrorDetail(`Speech recognition failed: ${detail}`);
+            setPhase('error');
+          }
+        },
+      });
+    }
+
+    async function beginWhisper(withCaptions: boolean) {
+      if (withCaptions) {
+        const session = new WhisperCaptionSession();
+        whisperRef.current = session;
+        await session.start({
+          onText: showCaption,
+          onError: () => setFallbackMode(true), // keep recording; captions die quietly
+        });
+      } else {
+        setFallbackMode(true); // whisper chosen but no model: record-only
+      }
+      if (cancelled) return;
+      await recorder.startRecording({
+        sampleRate: 16000,
+        channels: 1,
+        encoding: 'pcm_16bit',
+        interval: 250,
+        keepAwake: true,
+        onAudioStream: async (event) => {
+          if (!pausedRef.current && typeof event.data === 'string') {
+            whisperRef.current?.pushAudio(event.data);
+          }
+        },
+      });
+    }
+
     async function begin() {
       try {
-        await new Promise<void>((resolve, reject) => {
-          const timer = setTimeout(() => reject(new Error('socket timeout')), READY_TIMEOUT);
-          socket
-            .connect(attemptId, buildHandlers(() => {
-              clearTimeout(timer);
-              resolve();
-            }))
-            .catch(reject);
-        }).catch(() => setFallbackMode(true)); // recording continues without captions
-
-        if (cancelled) return;
-        await recorder.startRecording({
-          sampleRate: 16000,
-          channels: 1,
-          encoding: 'pcm_16bit',
-          interval: 250,
-          keepAwake: true,
-          onAudioStream: async (event) => {
-            if (!pausedRef.current && typeof event.data === 'string') {
-              socketRef.current?.sendAudio(event.data);
-            }
-          },
-        });
+        if (engine === 'gemini') await beginGemini();
+        else if (engine === 'device') await beginDevice();
+        else await beginWhisper(engine === 'whisper');
         if (!cancelled) setPhase('recording');
       } catch (e) {
         if (!cancelled) {
@@ -162,10 +230,21 @@ export default function SessionScreen() {
       cancelled = true;
       intentionalClose.current = true;
       socketRef.current?.close();
-      recorder.stopRecording().catch(() => {});
+      deviceRef.current?.dispose();
+      whisperRef.current?.stop().catch(() => {});
+      if (engine !== 'device') recorder.stopRecording().catch(() => {});
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attemptId]);
+
+  // The device engine has no audio-studio recorder to provide a clock.
+  useEffect(() => {
+    if (engine !== 'device' || phase !== 'recording') return;
+    const startedAt = Date.now() - deviceSeconds * 1000;
+    const t = setInterval(() => setDeviceSeconds((Date.now() - startedAt) / 1000), 500);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [engine, phase]);
 
   async function togglePause() {
     if (paused) {
@@ -183,12 +262,33 @@ export default function SessionScreen() {
     setPhase('finishing');
     intentionalClose.current = true;
     try {
+      if (engine === 'device') {
+        const session = deviceRef.current;
+        const { wavUri, durationSeconds } = session
+          ? await session.stop()
+          : { wavUri: null, durationSeconds: 0 };
+        if (!wavUri) throw new Error('No recording was captured');
+        const storagePath = await uploadRecording(wavUri, attemptId);
+        await api(`/attempts/${attemptId}/transcribe-fallback`, {
+          method: 'POST',
+          body: JSON.stringify({
+            duration_seconds: durationSeconds,
+            storage_path: storagePath,
+            size_bytes: null,
+          }),
+        });
+        router.replace({ pathname: '/results/[attemptId]', params: { attemptId, challengeId } });
+        return;
+      }
+
       const socket = socketRef.current;
       // Only trust the live transcript if the socket held for the whole take.
-      const liveWorked = !!socket?.isOpen && !fallbackMode && !reconnectedDuringTake.current;
+      const liveWorked =
+        engine === 'gemini' && !!socket?.isOpen && !fallbackMode && !reconnectedDuringTake.current;
 
       if (paused) await recorder.resumeRecording().catch(() => {});
       const recording = await recorder.stopRecording();
+      await whisperRef.current?.stop().catch(() => {});
 
       if (liveWorked && socket) {
         socket.stop();
@@ -225,7 +325,8 @@ export default function SessionScreen() {
     }
   }
 
-  const seconds = Math.floor(recorder.durationMs / 1000);
+  const seconds =
+    engine === 'device' ? Math.floor(deviceSeconds) : Math.floor(recorder.durationMs / 1000);
   const limit = challenge?.max_speak_seconds ?? 120;
 
   useEffect(() => {
@@ -262,9 +363,11 @@ export default function SessionScreen() {
         ref={scrollRef}
         style={styles.transcriptBox}
         contentContainerStyle={{ padding: spacing.md }}>
-        {fallbackMode ? (
+        {fallbackMode && !transcript ? (
           <Text style={styles.fallbackNote}>
-            Live captions unavailable — your recording will be transcribed after you stop.
+            {engine === 'offline'
+              ? 'Whisper model not downloaded (Profile → AI settings) — your recording will be transcribed after you stop.'
+              : 'Live captions unavailable — your recording will be transcribed after you stop.'}
           </Text>
         ) : transcript ? (
           <Text style={styles.transcript}>{transcript}</Text>
@@ -284,12 +387,14 @@ export default function SessionScreen() {
         </View>
       ) : (
         <View style={styles.controls}>
-          <Pressable
-            style={[styles.pauseButton, phase !== 'recording' && { opacity: 0.4 }]}
-            disabled={phase !== 'recording'}
-            onPress={togglePause}>
-            <Text style={styles.pauseLabel}>{paused ? 'Resume' : 'Pause'}</Text>
-          </Pressable>
+          {engine !== 'device' && (
+            <Pressable
+              style={[styles.pauseButton, phase !== 'recording' && { opacity: 0.4 }]}
+              disabled={phase !== 'recording'}
+              onPress={togglePause}>
+              <Text style={styles.pauseLabel}>{paused ? 'Resume' : 'Pause'}</Text>
+            </Pressable>
+          )}
           <Pressable
             style={[styles.stopButton, phase !== 'recording' && { opacity: 0.5 }]}
             disabled={phase !== 'recording'}

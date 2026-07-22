@@ -38,6 +38,14 @@
       "expo-secure-store",
       "expo-audio",
       [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "ōrātiō records your voice so it can transcribe and evaluate your speaking practice.",
+          "speechRecognitionPermission": "ōrātiō uses speech recognition to show live captions while you speak.",
+          "androidSpeechServicePackages": ["com.google.android.googlequicksearchbox"]
+        }
+      ],
+      [
         "@siteed/audio-studio",
         {
           "microphonePermission": "ōrātiō records your voice so it can transcribe and evaluate your speaking practice."

@@ -18,13 +18,37 @@ import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useSettings, useUpdateSettings } from '@/hooks/useSettings';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { api } from '@/lib/api';
+import {
+  deleteWhisperModel,
+  downloadWhisperModel,
+  isWhisperModelDownloaded,
+} from '@/lib/captions/whisperModel';
 import { supabase } from '@/lib/supabase';
+import { useCaptionEngine, type CaptionEngine } from '@/stores/captionEngine';
 import { useColors, useTheme, type AppColors, type ThemeMode, spacing } from '@/theme';
 
 const APPEARANCE_OPTIONS: { value: ThemeMode; label: string }[] = [
   { value: 'system', label: 'System' },
   { value: 'light', label: 'Light' },
   { value: 'dark', label: 'Dark' },
+];
+
+const ENGINE_OPTIONS: { value: CaptionEngine; label: string; description: string }[] = [
+  {
+    value: 'gemini',
+    label: 'Gemini Live (cloud)',
+    description: 'Streams your audio to the server for captions. Needs internet.',
+  },
+  {
+    value: 'device',
+    label: 'System recognizer (on-device)',
+    description: "Your device's built-in speech engine. Fastest captions; no pause during a take.",
+  },
+  {
+    value: 'whisper',
+    label: 'Whisper (on-device AI)',
+    description: 'Runs Whisper locally. Needs a one-time ~77 MB model download.',
+  },
 ];
 
 function errorText(e: unknown): string {
@@ -65,6 +89,11 @@ export default function Profile() {
   const update = useUpdateProfile();
   const { data: settings } = useSettings();
   const updateSettings = useUpdateSettings();
+
+  const captionEngine = useCaptionEngine((s) => s.engine);
+  const setCaptionEngine = useCaptionEngine((s) => s.setEngine);
+  const [whisperReady, setWhisperReady] = useState(isWhisperModelDownloaded);
+  const [whisperProgress, setWhisperProgress] = useState<number | null>(null);
 
   const [apiKey, setApiKey] = useState('');
   const [model, setModel] = useState<string | null>(null);
@@ -124,6 +153,25 @@ export default function Profile() {
     } catch (e) {
       setError(errorText(e));
     }
+  }
+
+  async function handleDownloadModel() {
+    setError(null);
+    setWhisperProgress(0);
+    try {
+      await downloadWhisperModel(setWhisperProgress);
+      setWhisperReady(true);
+    } catch (e) {
+      setError(errorText(e));
+    } finally {
+      setWhisperProgress(null);
+    }
+  }
+
+  function handleDeleteModel() {
+    deleteWhisperModel();
+    setWhisperReady(false);
+    if (captionEngine === 'whisper') setCaptionEngine('gemini');
   }
 
   async function clearKey() {
@@ -259,6 +307,53 @@ export default function Profile() {
           ))}
         </View>
 
+        <Text style={styles.label}>Live captions engine</Text>
+        <Text style={styles.aiNote}>
+          Used for solo drill captions. Coach, debate and roleplay always use Gemini Live, and
+          scoring always evaluates the full recording — the engine only changes what you see
+          while speaking.
+        </Text>
+        {ENGINE_OPTIONS.map((o) => {
+          const selected = captionEngine === o.value;
+          return (
+            <Pressable
+              key={o.value}
+              onPress={() => setCaptionEngine(o.value)}
+              style={[styles.engineCard, selected && styles.engineCardSelected]}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.engineTitle, selected && { color: c.textPrimary }]}>
+                  {o.label}
+                </Text>
+                <Text style={styles.engineDesc}>{o.description}</Text>
+              </View>
+              <View style={[styles.radio, selected && styles.radioSelected]} />
+            </Pressable>
+          );
+        })}
+
+        {(captionEngine === 'whisper' || whisperReady) && (
+          <View style={styles.modelRow}>
+            {whisperProgress != null ? (
+              <>
+                <View style={styles.progressTrack}>
+                  <View style={[styles.progressFill, { width: `${Math.round(whisperProgress * 100)}%` }]} />
+                </View>
+                <Text style={styles.modelStatus}>{Math.round(whisperProgress * 100)}%</Text>
+              </>
+            ) : whisperReady ? (
+              <>
+                <Text style={styles.modelStatus}>Whisper model downloaded ✓</Text>
+                <Button title="Delete model" variant="ghost" onPress={handleDeleteModel} />
+              </>
+            ) : (
+              <>
+                <Text style={styles.modelStatus}>Model required for Whisper captions</Text>
+                <Button title="Download (77 MB)" variant="ghost" onPress={handleDownloadModel} />
+              </>
+            )}
+          </View>
+        )}
+
         <Text style={styles.label}>Gemini API key</Text>
         <TextInput
           style={styles.input}
@@ -337,6 +432,37 @@ function makeStyles(c: AppColors) {
   confNum: { fontSize: 18, fontWeight: '800', color: c.textSecondary },
   confNumSelected: { color: c.textPrimary },
   confLabel: { fontSize: 9, color: c.textSecondary, textAlign: 'center' },
+  engineCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: c.surface,
+    borderWidth: 1,
+    borderColor: c.border,
+    borderRadius: 12,
+    padding: spacing.md,
+  },
+  engineCardSelected: { borderColor: c.primary, backgroundColor: c.primaryMuted },
+  engineTitle: { fontSize: 15, fontWeight: '700', color: c.textSecondary },
+  engineDesc: { fontSize: 12, color: c.textSecondary, marginTop: 2 },
+  radio: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: c.border,
+  },
+  radioSelected: { borderColor: c.primary, backgroundColor: c.primary },
+  modelRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 40 },
+  modelStatus: { fontSize: 13, color: c.textSecondary, flexShrink: 1 },
+  progressTrack: {
+    flex: 1,
+    height: 8,
+    borderRadius: 999,
+    backgroundColor: c.border,
+    overflow: 'hidden',
+  },
+  progressFill: { height: 8, borderRadius: 999, backgroundColor: c.primary },
   saved: { color: c.success, textAlign: 'center', fontWeight: '600' },
   error: { color: c.danger, textAlign: 'center' },
   divider: { height: 1, backgroundColor: c.border, marginVertical: spacing.md },
