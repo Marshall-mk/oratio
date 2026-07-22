@@ -248,13 +248,20 @@ export default function SessionScreen() {
 
   async function togglePause() {
     if (paused) {
-      await recorder.resumeRecording();
+      // If native lost the pause (recording restarted underneath us), resume
+      // rejects with NOT_PAUSED — there's nothing to resume, so just unpause
+      // the UI rather than leaving the screen stuck.
+      await recorder.resumeRecording().catch(() => {});
       pausedRef.current = false;
       setPaused(false);
     } else {
-      await recorder.pauseRecording();
-      pausedRef.current = true;
-      setPaused(true);
+      try {
+        await recorder.pauseRecording();
+        pausedRef.current = true;
+        setPaused(true);
+      } catch {
+        // Native didn't pause; don't show a PAUSED state that would lie.
+      }
     }
   }
 
