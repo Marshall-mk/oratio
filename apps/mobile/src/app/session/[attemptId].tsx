@@ -337,7 +337,12 @@ export default function SessionScreen() {
   const limit = challenge?.max_speak_seconds ?? 120;
 
   useEffect(() => {
-    if (phase === 'recording' && !paused && seconds >= limit) void stop();
+    if (phase !== 'recording' || seconds < limit) return;
+    // A real pause freezes the clock, so the limit normally only trips while
+    // actively recording. If the clock passes the limit anyway while "paused",
+    // native and UI state have diverged (recording is actually live) — force
+    // the stop after a small grace rather than recording unbounded.
+    if (!paused || seconds >= limit + 5) void stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seconds, phase, paused, limit]);
 
