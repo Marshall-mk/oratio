@@ -28,8 +28,9 @@ keeps long-lived connections. **Railway** is the easiest; **Render** and **Fly.i
 | **Railway** (or Render / Fly.io) | Host the FastAPI backend | ~$5/mo to start |
 
 > The app supports per-user "bring your own key", but the server still needs a default
-> Gemini key. Use a **billing-enabled** key so you can run `gemini-2.5-pro` (the free
-> tier has zero 2.5-pro quota — that's why dev runs on `gemini-2.5-flash`).
+> Gemini key. Note (mid-2026): Google closed the 2.5 text-model family to newly created
+> accounts — new keys must use 3.x models (`gemini-3.5-flash` etc.); a billing-enabled key
+> lifts the free tier's rate limits and unlocks the pro tiers.
 
 ---
 
@@ -77,8 +78,8 @@ The repo includes `services/api/Dockerfile`, so any container host can build it.
    SUPABASE_JWT_SECRET=...        # see note below
    DATABASE_URL=postgresql+asyncpg://postgres.<ref>:<pw>@...pooler.supabase.com:5432/postgres
    GEMINI_API_KEY=...             # billing-enabled
-   GEMINI_LIVE_MODEL=gemini-2.5-flash-native-audio-preview-12-2025
-   GEMINI_EVAL_MODEL=gemini-2.5-pro
+   GEMINI_LIVE_MODEL=gemini-2.5-flash-native-audio-latest
+   GEMINI_EVAL_MODEL=gemini-3.5-flash
    EVAL_WITH_AUDIO=false
    ENVIRONMENT=production
    POSTHOG_API_KEY=              # optional

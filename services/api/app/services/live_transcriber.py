@@ -15,8 +15,11 @@ from google.genai import types
 
 from app.config import get_settings
 
+# Language steering lives in the instruction: the AudioTranscriptionConfig
+# language_codes parameter is rejected outside Google's enterprise platform.
 SILENT_LISTENER_INSTRUCTION = (
-    "You are a silent transcription listener. The user is practicing a speech. "
+    "You are a silent transcription listener. The user is practicing a speech "
+    "in {language}; their words must be transcribed in that language only. "
     "Never respond, never speak, never comment. Remain completely silent at all times."
 )
 
@@ -109,10 +112,10 @@ class LiveTranscriber:
         client = genai.Client(api_key=self.api_key or settings.gemini_api_key)
         config = types.LiveConnectConfig(
             response_modalities=[types.Modality.AUDIO],
-            system_instruction=SILENT_LISTENER_INSTRUCTION,
-            input_audio_transcription=types.AudioTranscriptionConfig(
-                language_codes=[settings.transcription_language],
+            system_instruction=SILENT_LISTENER_INSTRUCTION.format(
+                language=settings.transcription_language,
             ),
+            input_audio_transcription=types.AudioTranscriptionConfig(),
             # Snappier end-of-turn detection so transcription flushes sooner
             # after each phrase (default VAD waits noticeably longer).
             realtime_input_config=types.RealtimeInputConfig(

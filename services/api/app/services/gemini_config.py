@@ -13,11 +13,10 @@ from app.config import get_settings
 from app.models import UserSettings
 
 # Curated, structured-output-capable models offered in the picker.
+# 2.5-era text models are gone: Google closed them to newly created accounts.
 AVAILABLE_EVAL_MODELS = [
-    "gemini-2.5-flash",
-    "gemini-2.5-flash-lite",
-    "gemini-2.5-pro",
     "gemini-3.5-flash",
+    "gemini-3.5-flash-lite",
     "gemini-3.1-pro-preview",
 ]
 

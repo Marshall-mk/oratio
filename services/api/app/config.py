@@ -15,15 +15,16 @@ class Settings(BaseSettings):
     supabase_jwt_secret: str = ""
     database_url: str = ""
 
-    # Gemini
+    # Gemini. Note: Google closed the 2.5 text-model family to newly created
+    # accounts (mid-2026), so defaults target models every key can use.
     gemini_api_key: str = ""
-    gemini_live_model: str = "gemini-2.5-flash-native-audio-preview-12-2025"
-    # Silent transcription (drills/coach/debate captions) uses the half-cascade
-    # Live model: unlike the native-audio variant (kept for roleplay, which
-    # needs spoken replies), it streams input transcription incrementally
-    # instead of holding text until the turn is processed.
-    gemini_transcriber_model: str = "gemini-live-2.5-flash-preview"
-    gemini_eval_model: str = "gemini-2.5-pro"
+    # Roleplay (spoken replies): the rolling native-audio alias survives
+    # individual preview retirements.
+    gemini_live_model: str = "gemini-2.5-flash-native-audio-latest"
+    # Silent transcription (drills/coach/debate captions): a Live model that
+    # streams input transcription instead of holding it until turn end.
+    gemini_transcriber_model: str = "gemini-3.1-flash-live-preview"
+    gemini_eval_model: str = "gemini-3.5-flash"
     eval_with_audio: bool = False
     # BCP-47 hint for live input transcription; without it the model free-runs
     # language detection and can drift on ambiguous audio.
