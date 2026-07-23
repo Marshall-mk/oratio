@@ -28,6 +28,7 @@ supabase start                       # prints local URL + anon/service keys
 psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f supabase/seed.sql
 psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f supabase/seed_0002_scenarios.sql
 psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f supabase/seed_0005_coach.sql
+psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f supabase/seed_0007_subcategories.sql
 
 # 2. Backend deps + env
 cd services/api
