@@ -44,7 +44,10 @@ of pro. If you later want zero cold-starts and pro-grade scoring, see
 3. From **Project Settings → Database → Connection string**, copy the **Session pooler** URI and
    rewrite it for the async driver the backend uses:
    ```
-   postgresql+asyncpg://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres
+   postgresql+asyncpg://postgres.<ref>:<password>@aws-<n>-<region>.pooler.supabase.com:5432/postgres
+   # copy the pooler host EXACTLY from the dashboard's Connect dialog — the aws-<n> number varies
+   # per project, and the direct db.<ref>.supabase.co host is IPv6-only (unreachable from most
+   # free hosts and many home networks)
    ```
 4. Push the schema + seed data from the repo root (needs the [Supabase CLI](https://supabase.com/docs/guides/cli)):
    ```bash
@@ -125,7 +128,10 @@ ENVIRONMENT=production
 1. [aistudio.google.com](https://aistudio.google.com) → **Get API key** → create one (no billing needed).
 2. Put it in `GEMINI_API_KEY` on the backend host.
 3. **Stay on flash models** to stay free — the free tier has **no `gemini-2.5-pro` quota**:
-   - `GEMINI_EVAL_MODEL=gemini-2.5-flash` (the default `gemini-2.5-pro` would fail on the free tier).
+   - `GEMINI_EVAL_MODEL=gemini-3.5-flash` — Google has closed the 2.5 family to newly created
+     accounts, so new keys must use 3.x models. Also set
+     `GEMINI_TRANSCRIBER_MODEL=gemini-3.1-flash-live-preview` (the 2.5 half-cascade Live model
+     doesn't exist for new keys).
    - The live/transcription model already defaults to a flash model.
 4. Free tier is **rate-limited** (a handful of requests/min, a daily cap). Fine for personal
    practice; live transcription is the most likely thing to hit a limit. If a call fails with a
