@@ -33,10 +33,9 @@ export default function TabsLayout() {
         options={{
           title: 'Train',
           tabBarIcon: ({ color, size }) => (
-            // Axial (top-down) brain slice — no icon set ships one, so it's a
-            // tinted monochrome asset.
+            // The brand mark (speech bubble + waveform), tinted to match.
             <Image
-              source={require('@/assets/images/brain-axial.png')}
+              source={require('@/assets/images/speech-mark.png')}
               style={{ width: size, height: size, tintColor: color }}
               resizeMode="contain"
             />
