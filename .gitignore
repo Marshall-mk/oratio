@@ -32,3 +32,13 @@ supabase/.temp/
 .DS_Store
 .idea/
 .vscode/
+
+# Local-only docs
+DEPLOYMENT.md
+ANDROID_DEPLOYMENT.md
+IOS_DEPLOYMENT.md
+TODO.md
+prd.md
+
+# Claude Code local config
+.claude/

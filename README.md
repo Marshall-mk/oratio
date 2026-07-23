@@ -2,15 +2,12 @@
 
 Voice-first AI communication training app. Users take speaking challenges, get live transcription while they speak, and receive an AI evaluation that scores three independent stages — **Thought**, **Structure**, and **Delivery** — with a feedback report and retry loop.
 
-See `prd.md` for the full product spec and `TODO.md` for build status.
-
 ## Repo layout
 
 ```
 apps/mobile/    Expo (React Native + TypeScript) app
 services/api/   FastAPI backend (Python 3.12, uv)
 supabase/       Database migrations + seed (Supabase CLI)
-docs/           Architecture notes
 ```
 
 ## Stack
@@ -77,12 +74,6 @@ supabase stop             # stops the Docker stack (data is kept in a Docker vol
 ```
 
 `supabase start` again later restores all local data. To wipe and re-seed: `supabase db reset`.
-
-### Deploying to production
-
-See **[DEPLOYMENT.md](DEPLOYMENT.md)** — cloud Supabase, the FastAPI backend on Railway/Render, and shipping the app to the App Store via EAS.
-
-For a **free, standalone Android** install (sideloaded APK, no store account, $0/month), see **[ANDROID_DEPLOYMENT.md](ANDROID_DEPLOYMENT.md)**. For shipping to the **iOS App Store** (EAS build, TestFlight, review checklist), see **[IOS_DEPLOYMENT.md](IOS_DEPLOYMENT.md)**.
 
 ## Architecture (one paragraph)
 
